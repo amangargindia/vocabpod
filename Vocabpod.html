@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VocabPod — Brand System & UI Preview</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configure custom theme colors matched to user preferences -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        charcoal: {
+                            DEFAULT: '#1D1D1F',     /* Apple System Jet Black/Charcoal */
+                            secondary: '#86868B',   /* Apple Secondary Muted Gray */
+                            tertiary: '#AEAEB2',    /* Lighter Gray for borders */
+                            darker: '#121214',      /* Richer dark mode background */
+                            card: '#1C1C1E'         /* Apple Dark Mode card color */
+                        },
+                        terracotta: {
+                            DEFAULT: '#C85A43',     /* Main Accent: Warm, dusty brick orange */
+                            light: '#F5EBE9',        /* Soft background wash for highlight states */
+                            hover: '#B04B36'        /* Darker state for interaction */
+                        },
+                        applegray: {
+                            DEFAULT: '#F5F5F7',     /* Standard Apple Light gray background */
+                            dark: '#E8E8ED'         /* Border gray */
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Smooth, premium transitions typical of Apple hardware interfaces */
+        * {
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Custom scrollbar to keep layout clean */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #E8E8ED;
+            border-radius: 9999px;
+        }
+
+        .dark ::-webkit-scrollbar-thumb {
+            background: #2C2C2E;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-white text-charcoal font-sans antialiased min-h-screen flex flex-col selection:bg-terracotta/20 selection:text-terracotta">
+
+    <!-- Brand Header -->
+    <header
+        class="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-charcoal-darker/80 border-b border-applegray dark:border-charcoal/30 px-6 py-4 md:px-12 transition-all">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <!-- Logo area (Minimalist, typographic) -->
+            <div class="flex items-center space-x-3">
+                <span class="text-xs tracking-[0.25em] font-bold text-terracotta uppercase">V O C A B P O D</span>
+            </div>
+
+            <!-- Header Info & Utility Actions -->
+            <div class="flex items-center space-x-6">
+                <span class="text-xs text-charcoal-secondary hidden md:inline-flex items-center">
+                    <span class="w-1.5 h-1.5 rounded-full bg-terracotta mr-2 animate-pulse"></span>
+                    Brand System Prototype
+                </span>
+
+                <!-- Dark Mode Toggle Button -->
+                <button id="themeToggleBtn" onclick="toggleTheme()"
+                    class="p-2 rounded-full hover:bg-applegray dark:hover:bg-charcoal/50 text-charcoal dark:text-applegray"
+                    aria-label="Toggle Theme">
+                    <svg id="themeIconSun" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z">
+                        </path>
+                    </svg>
+                    <svg id="themeIconMoon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl mx-auto w-full px-6 py-10 md:px-12 md:py-16">
+
+        <!-- Welcome intro section highlighting visual design constraints -->
+        <div class="mb-12 md:mb-16 max-w-2xl">
+            <h1 class="text-3xl md:text-4xl font-semibold tracking-tight text-charcoal dark:text-white mb-4">
+                Designed to make language visual.
+            </h1>
+            <p class="text-base text-charcoal-secondary dark:text-charcoal-tertiary leading-relaxed">
+                A premium, minimalist learning canvas inspired by Apple design structures. Generous negative space
+                focuses cognitive retention entirely on the stories and mnemonics, with <span
+                    class="text-terracotta font-medium">Muted Terracotta</span> drawing absolute focus to critical
+                visual targets.
+            </p>
+        </div>
+
+        <!-- Interactive Layout Demonstration Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mb-16">
+
+            <!-- Left Side: Interactive Mnemonic Core Visual Block (Spans 7 columns on desktop) -->
+            <section class="lg:col-span-7 space-y-6">
+                <div
+                    class="bg-applegray dark:bg-charcoal/30 rounded-3xl p-6 md:p-10 border border-transparent dark:border-charcoal/40 aspect-[4/3] flex flex-col justify-between overflow-hidden relative group">
+
+                    <!-- Decorative design tag -->
+                    <div class="flex justify-between items-center z-10">
+                        <span
+                            class="text-[10px] tracking-[0.2em] uppercase font-bold text-charcoal-secondary dark:text-charcoal-tertiary">
+                            Interactive Mnemonic Canvas
+                        </span>
+                        <span
+                            class="text-[10px] tracking-[0.1em] font-medium text-terracotta bg-terracotta/10 px-2.5 py-1 rounded-full">
+                            Visual Anchor
+                        </span>
+                    </div>
+
+                    <!-- Dynamic SVG Graphic representing current active word mnemonic -->
+                    <div class="flex justify-center items-center py-6 text-charcoal dark:text-white flex-grow">
+                        <!-- Graphic container dynamically populated by JS -->
+                        <div id="mnemonicGraphic"
+                            class="w-full max-w-[200px] h-auto text-charcoal/80 dark:text-white/90">
+                            <!-- SVG will load here -->
+                        </div>
+                    </div>
+
+                    <!-- Mnemonic visual story breakdown at bottom of artwork -->
+                    <div
+                        class="bg-white/80 dark:bg-charcoal-card/90 backdrop-blur-md rounded-2xl p-5 border border-applegray/50 dark:border-charcoal/30 z-10 shadow-sm">
+                        <p id="visualContextText"
+                            class="text-xs text-charcoal-secondary dark:text-charcoal-tertiary leading-relaxed">
+                            Loading illustration...
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Side: Clean Typography Word & Narrative Column (Spans 5 columns on desktop) -->
+            <section class="lg:col-span-5 space-y-6 lg:pl-4">
+                <!-- Word Header Card -->
+                <div class="border-b border-applegray dark:border-charcoal/30 pb-6">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <span id="wordCategory"
+                            class="text-xs font-semibold uppercase tracking-wider text-charcoal-secondary dark:text-charcoal-tertiary">ADJECTIVE</span>
+                        <span class="text-xs text-charcoal-tertiary dark:text-charcoal-secondary">•</span>
+                        <span id="wordPronunciation"
+                            class="text-xs font-medium tracking-normal text-charcoal-secondary dark:text-charcoal-tertiary">/ɪˈfem.ər.əl/</span>
+                    </div>
+                    <h2 id="activeWordName"
+                        class="text-4xl md:text-5xl font-bold tracking-tight text-charcoal dark:text-white mb-3">
+                        Ephemeral
+                    </h2>
+                    <p id="wordSimpleDefinition"
+                        class="text-lg text-charcoal dark:text-charcoal-tertiary leading-relaxed font-light">
+                        Lasting for a very short time; transient or fleeting.
+                    </p>
+                </div>
+
+                <!-- Narrative Story block -->
+                <div class="space-y-4">
+                    <h3 class="text-xs font-bold uppercase tracking-[0.15em] text-terracotta">
+                        The Visual Mnemonic Story
+                    </h3>
+                    <div class="space-y-3">
+                        <p id="wordMnemonicNarrative"
+                            class="text-sm text-charcoal-secondary dark:text-charcoal-tertiary leading-relaxed">
+                            Imagine a delicate paper boat (<strong
+                                class="text-charcoal dark:text-white font-medium">ephemera</strong>) floating down a
+                            stream during a brief summer rain. It is beautifully designed, but destined to dissolve and
+                            disappear in just moments.
+                        </p>
+                        <!-- Usage example sentence -->
+                        <div
+                            class="border-l-2 border-terracotta pl-4 py-1 italic text-xs text-charcoal-secondary dark:text-charcoal-tertiary">
+                            "The morning mist, gorgeous but <span
+                                class="border-b border-dotted border-terracotta">ephemeral</span>, vanished as soon as
+                            the sun peeked over the mountains."
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive CTA triggers (Apple style button controls) -->
+                <div class="pt-6 space-y-3">
+                    <button onclick="markAsLearned()"
+                        class="w-full bg-terracotta hover:bg-terracotta-hover text-white text-sm font-medium py-3.5 px-6 rounded-2xl shadow-md shadow-terracotta/10 flex items-center justify-center space-x-2 tracking-wide focus:outline-none focus:ring-2 focus:ring-terracotta/30">
+                        <span>Commit to Memory</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </button>
+
+                    <button onclick="nextWord()"
+                        class="w-full bg-applegray hover:bg-applegray-dark dark:bg-charcoal/50 dark:hover:bg-charcoal text-charcoal dark:text-applegray text-sm font-medium py-3.5 px-6 rounded-2xl flex items-center justify-center space-x-2 tracking-wide border border-transparent dark:border-charcoal/40">
+                        <span>Next Vocabulary Word</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                        </svg>
+                    </button>
+                </div>
+            </section>
+
+        </div>
+
+        <!-- Brand Assets & Color Swatch Palette Inspector -->
+        <section class="border-t border-applegray dark:border-charcoal/30 pt-12">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+                <div>
+                    <h3 class="text-xl font-semibold text-charcoal dark:text-white mb-1">
+                        Brand System Palette
+                    </h3>
+                    <p class="text-xs text-charcoal-secondary dark:text-charcoal-tertiary">
+                        Tap any swatch below to instantly copy the exact HEX code to your clipboard.
+                    </p>
+                </div>
+
+                <!-- Feedback visual notification toast -->
+                <div id="copyNotification"
+                    class="opacity-0 translate-y-1 text-xs text-terracotta font-medium flex items-center bg-terracotta/5 px-4 py-2 rounded-xl border border-terracotta/20">
+                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    HEX copied to clipboard!
+                </div>
+            </div>
+
+            <!-- Palette Grid showing Swatches -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+
+                <!-- Swatch 1: Primary Accent -->
+                <button onclick="copyColor('#C85A43', 'Muted Terracotta')"
+                    class="flex flex-col text-left p-4 rounded-2xl bg-applegray dark:bg-charcoal/30 border border-transparent dark:border-charcoal/40 hover:-translate-y-1 hover:shadow-sm">
+                    <div class="w-full h-16 rounded-xl bg-terracotta mb-4"></div>
+                    <span class="text-xs font-bold text-charcoal dark:text-white mb-0.5">Muted Terracotta</span>
+                    <span
+                        class="text-xs text-charcoal-secondary dark:text-charcoal-tertiary uppercase font-mono tracking-wider">#C85A43</span>
+                    <span class="text-[10px] text-terracotta mt-2 font-medium uppercase tracking-wider">Primary Accent &
+                        CTAs</span>
+                </button>
+
+                <!-- Swatch 2: Dark Charcoal -->
+                <button onclick="copyColor('#1D1D1F', 'Dark Charcoal')"
+                    class="flex flex-col text-left p-4 rounded-2xl bg-applegray dark:bg-charcoal/30 border border-transparent dark:border-charcoal/40 hover:-translate-y-1 hover:shadow-sm">
+                    <div class="w-full h-16 rounded-xl bg-charcoal mb-4 border border-white/10"></div>
+                    <span class="text-xs font-bold text-charcoal dark:text-white mb-0.5">Dark Charcoal</span>
+                    <span
+                        class="text-xs text-charcoal-secondary dark:text-charcoal-tertiary uppercase font-mono tracking-wider">#1D1D1F</span>
+                    <span
+                        class="text-[10px] text-charcoal-secondary dark:text-charcoal-tertiary mt-2 font-medium uppercase tracking-wider">Core
+                        Text & Shapes</span>
+                </button>
+
+                <!-- Swatch 3: Apple System Soft Gray -->
+                <button onclick="copyColor('#F5F5F7', 'Soft Off-Gray')"
+                    class="flex flex-col text-left p-4 rounded-2xl bg-applegray dark:bg-charcoal/30 border border-transparent dark:border-charcoal/40 hover:-translate-y-1 hover:shadow-sm">
+                    <div class="w-full h-16 rounded-xl bg-[#F5F5F7] mb-4 border border-applegray-dark"></div>
+                    <span class="text-xs font-bold text-charcoal dark:text-white mb-0.5">Soft Off-Gray</span>
+                    <span
+                        class="text-xs text-charcoal-secondary dark:text-charcoal-tertiary uppercase font-mono tracking-wider">#F5F5F7</span>
+                    <span
+                        class="text-[10px] text-charcoal-secondary dark:text-charcoal-tertiary mt-2 font-medium uppercase tracking-wider">Muted
+                        UI Backgrounds</span>
+                </button>
+
+                <!-- Swatch 4: Pure White -->
+                <button onclick="copyColor('#FFFFFF', 'Crisp White')"
+                    class="flex flex-col text-left p-4 rounded-2xl bg-applegray dark:bg-charcoal/30 border border-transparent dark:border-charcoal/40 hover:-translate-y-1 hover:shadow-sm">
+                    <div class="w-full h-16 rounded-xl bg-white mb-4 border border-applegray-dark"></div>
+                    <span class="text-xs font-bold text-charcoal dark:text-white mb-0.5">Crisp White</span>
+                    <span
+                        class="text-xs text-charcoal-secondary dark:text-charcoal-tertiary uppercase font-mono tracking-wider">#FFFFFF</span>
+                    <span
+                        class="text-[10px] text-charcoal-secondary dark:text-charcoal-tertiary mt-2 font-medium uppercase tracking-wider">Main
+                        Canvas & White Space</span>
+                </button>
+
+            </div>
+        </section>
+
+    </main>
+
+    <footer
+        class="border-t border-applegray dark:border-charcoal/20 bg-[#FAF9F6]/30 dark:bg-charcoal-darker px-6 py-8 mt-12 transition-all">
+        <div
+            class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center text-xs text-charcoal-secondary dark:text-charcoal-tertiary gap-4">
+            <div class="flex items-center space-x-2">
+                <span class="font-semibold text-charcoal dark:text-white tracking-wider">VocabPod Design Language</span>
+                <span>•</span>
+                <span>Minimalist Framework</span>
+            </div>
+            <div>
+                Built on high-contrast storytelling & clean memory triggers.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Data containing dynamic words showing premium layout
+        const vocabularyWords = [
+            {
+                name: "Ephemeral",
+                category: "ADJECTIVE",
+                pronunciation: "/ɪˈfem.ər.əl/",
+                definition: "Lasting for a very short time; transient or fleeting.",
+                mnemonicStory: "Imagine a delicate paper boat (<strong class='text-charcoal dark:text-white font-semibold'>ephemera</strong>) floating down a stream during a brief summer rain. It is beautifully designed, but destined to dissolve and disappear in just moments.",
+                sentence: "The morning mist, gorgeous but ephemeral, vanished as soon as the sun peeked over the mountains.",
+                artworkDesc: "Visual Anchor: A minimalist paper boat caught on the surface of delicate water waves, illustrating beautiful but temporary existence.",
+                // Minimalist inline SVG
+                svg: `
+                    <svg viewBox="0 0 100 100" class="w-full h-full" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <!-- Water surface curves -->
+                        <path d="M15 75 Q32 72, 50 75 T85 75" class="opacity-30" />
+                        <path d="M25 82 Q42 79, 60 82 T75 82" class="opacity-20" />
+                        <!-- Paper boat -->
+                        <path d="M25 65 L40 65 L50 40 L60 65 L75 65 L65 73 L35 73 Z" class="stroke-terracotta" fill="none" stroke-width="2"/>
+                        <path d="M50 40 L50 65" class="stroke-terracotta opacity-60"/>
+                        <path d="M40 65 L50 50 L60 65" class="stroke-terracotta opacity-60"/>
+                        <!-- Clock/time ephemeral abstract lines -->
+                        <circle cx="50" cy="50" r="38" class="opacity-10" stroke-dasharray="4 4" />
+                        <path d="M50 15 L50 22" class="opacity-40" />
+                    </svg>
+                `
+            },
+            {
+                name: "Capricious",
+                category: "ADJECTIVE",
+                pronunciation: "/kəˈprɪʃ.əs/",
+                definition: "Given to sudden and unaccountable changes of mood or behavior.",
+                mnemonicStory: "Picture a wild windvane spinning rapidly atop a stormy roof. It responds instantly to every erratic gust, changing direction in a second (<strong class='text-charcoal dark:text-white font-semibold'>capricious winds</strong>).",
+                sentence: "The weather in spring is notoriously capricious, shifting rapidly from sunny blue skies to sudden thunder squalls.",
+                artworkDesc: "Visual Anchor: A sleek modern wind vane caught in overlapping erratic vector wind gusts, showcasing unpredictable direction shifts.",
+                svg: `
+                    <svg viewBox="0 0 100 100" class="w-full h-full" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <!-- Wind drafts -->
+                        <path d="M15 25 Q35 15, 55 30 T85 20" class="opacity-20" stroke-dasharray="2 2" />
+                        <path d="M20 75 Q45 80, 60 65 T80 70" class="opacity-20" />
+                        <!-- Windvane / Compass Structure -->
+                        <path d="M50 20 L50 80" class="opacity-30" />
+                        <!-- Spinning vane head -->
+                        <g class="stroke-terracotta" stroke-width="2">
+                            <path d="M35 40 L65 40" />
+                            <path d="M35 35 L35 45" />
+                            <!-- Vane arrow -->
+                            <path d="M65 40 L58 34" />
+                            <path d="M65 40 L58 46" />
+                            <circle cx="50" cy="40" r="3.5" fill="currentColor" />
+                        </g>
+                        <!-- North/South letters simplified -->
+                        <text x="47" y="16" class="text-[8px] opacity-40 font-bold tracking-widest fill-current">N</text>
+                        <text x="48" y="88" class="text-[8px] opacity-40 font-bold tracking-widest fill-current">S</text>
+                    </svg>
+                `
+            },
+            {
+                name: "Obdurate",
+                category: "ADJECTIVE",
+                pronunciation: "/ˈɒb.djʊ.rət/",
+                definition: "Stubbornly refusing to change one's opinion or course of action.",
+                mnemonicStory: "See a solid, ancient stone gate (<strong class='text-charcoal dark:text-white font-semibold'>obstacle/obdurate</strong>) built into a mountain cliffside. The strongest winds sweep over it, yet it remains completely unyielding and unmoved.",
+                sentence: "Despite numerous logical objections from the rest of the board members, the CEO remained completely obdurate.",
+                artworkDesc: "Visual Anchor: A bold, minimal cubic structure resisting surrounding abstract diagonal force vectors without budging a millimeter.",
+                svg: `
+                    <svg viewBox="0 0 100 100" class="w-full h-full" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <!-- Dynamic force lines trying to push -->
+                        <path d="M15 25 L35 35" class="opacity-30" stroke-width="2" />
+                        <path d="M12 40 L30 46" class="opacity-20" />
+                        <path d="M18 55 L38 60" class="opacity-40" stroke-width="2" />
+                        <!-- Solid immovable monolith -->
+                        <rect x="45" y="25" width="30" height="50" rx="3" class="stroke-terracotta" stroke-width="2.5" fill="none" />
+                        <!-- Shading layers inside core shape to symbolize weight -->
+                        <path d="M53 32 L53 68" class="stroke-terracotta opacity-30" />
+                        <path d="M60 32 L60 68" class="stroke-terracotta opacity-30" />
+                        <path d="M67 32 L67 68" class="stroke-terracotta opacity-30" />
+                        <!-- Ground anchor -->
+                        <path d="M35 75 L85 75" class="opacity-50" stroke-width="2" />
+                    </svg>
+                `
+            }
+        ];
+
+        let currentIdx = 0;
+
+        // Load active vocabulary metadata into UI layout
+        function renderWord(idx) {
+            const data = vocabularyWords[idx];
+
+            document.getElementById('wordCategory').innerText = data.category;
+            document.getElementById('wordPronunciation').innerText = data.pronunciation;
+            document.getElementById('activeWordName').innerText = data.name;
+            document.getElementById('wordSimpleDefinition').innerText = data.definition;
+            document.getElementById('wordMnemonicNarrative').innerHTML = data.mnemonicStory;
+            document.getElementById('visualContextText').innerText = data.artworkDesc;
+            document.getElementById('mnemonicGraphic').innerHTML = data.svg;
+
+            // Re-inject dynamic sample sentence safely
+            const exampleNode = document.querySelector('.italic');
+            if (exampleNode) {
+                exampleNode.innerHTML = `"${data.sentence.replace(new RegExp(data.name, 'i'), `<span class="border-b border-dotted border-terracotta">${data.name.toLowerCase()}</span>`)}"`;
+            }
+        }
+
+        // Cycle vocabulary array index
+        function nextWord() {
+            currentIdx = (currentIdx + 1) % vocabularyWords.length;
+            renderWord(currentIdx);
+        }
+
+        // Flashy mini commitment notification alert
+        function markAsLearned() {
+            const word = vocabularyWords[currentIdx].name;
+            alertNotification(`Success: "${word}" committed to visual long-term memory system!`);
+            nextWord();
+        }
+
+        // Core Copy-to-Clipboard system supporting internal framed constraints
+        function copyColor(hexValue, name) {
+            // Temporary container element to execute secure copy
+            const textarea = document.createElement('textarea');
+            textarea.value = hexValue;
+            textarea.style.position = 'fixed';  // Prevent scrolling
+            document.body.appendChild(textarea);
+            textarea.select();
+
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    alertNotification(`Copied ${name} (${hexValue}) to clipboard`);
+                } else {
+                    console.error('Copy command unsuccessful');
+                }
+            } catch (err) {
+                console.error('Unable to copy', err);
+            }
+
+            document.body.removeChild(textarea);
+        }
+
+        // Show toast banner
+        function alertNotification(message) {
+            const toast = document.getElementById('copyNotification');
+            toast.innerHTML = `<svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>${message}`;
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateY(0)';
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(4px)';
+            }, 3000);
+        }
+
+        // Theme management supporting transitions
+        function toggleTheme() {
+            const htmlNode = document.documentElement;
+            const sunIcon = document.getElementById('themeIconSun');
+            const moonIcon = document.getElementById('themeIconMoon');
+
+            if (htmlNode.classList.contains('dark')) {
+                htmlNode.classList.remove('dark');
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
+            } else {
+                htmlNode.classList.add('dark');
+                sunIcon.classList.remove('hidden');
+                moonIcon.classList.add('hidden');
+            }
+        }
+
+        // Initial setup trigger on runtime completion
+        window.onload = function () {
+            renderWord(0);
+        }
+    </script>
+</body>
+
+</html>
