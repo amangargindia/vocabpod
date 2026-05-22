@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { signInWithPassword, signUp, resetPassword } from "@/lib/supabase";
+import Logo from "@/components/Logo";
 
 type AuthMode = "signin" | "signup" | "reset";
 
@@ -64,18 +65,7 @@ export default function LoginPage() {
       
       {/* Cinematic Logo */}
       <Link href="/" className="mb-12 hover:opacity-80 transition-opacity">
-        <svg viewBox="0 0 350 120" className="w-40 h-14" xmlns="http://www.w3.org/2000/svg">
-          <g stroke="#E04B35" strokeWidth="2.5" strokeLinecap="round">
-            <path d="M 50 40 L 40 30" />
-            <path d="M 60 35 L 60 20" />
-            <path d="M 70 40 L 80 30" />
-          </g>
-          <path d="M 16 35 L 60 102 L 104 35" fill="none" stroke="#F5F5F7" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.3" />
-          <path d="M 24 35 L 60 92 L 96 35" fill="none" stroke="#F5F5F7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" opacity="0.6" />
-          <path d="M 34 35 L 60 80 L 86 35" fill="none" stroke="#F5F5F7" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
-          <circle cx="60" cy="48" r="10" fill="#E04B35" />
-          <text x="125" y="74" fill="#F5F5F7" fontFamily="Inter, sans-serif" fontWeight="700" fontSize="36" letterSpacing="-1">VocabPod</text>
-        </svg>
+        <Logo className="w-40 h-14" />
       </Link>
 
       {/* Auth Card */}
@@ -104,6 +94,7 @@ export default function LoginPage() {
             <input
               type="email"
               required
+              autoComplete="username"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full bg-deep-canvas border border-white/10 rounded-xl px-4 py-4 text-sm focus:outline-none focus:border-terracotta/50 transition-colors"
@@ -117,6 +108,7 @@ export default function LoginPage() {
               <input
                 type="password"
                 required
+                autoComplete={mode === "signup" ? "new-password" : "current-password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full bg-deep-canvas border border-white/10 rounded-xl px-4 py-4 text-sm focus:outline-none focus:border-terracotta/50 transition-colors"

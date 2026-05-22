@@ -1,14 +1,18 @@
 import { useState, useEffect } from "react";
-import { getUser, getCloudProgress, saveCloudProgress } from "@/lib/supabase";
+import { getUser, getCloudProgress } from "@/lib/supabase";
+import { getTodayIST, getYesterdayIST } from "@/lib/dateUtils";
 
-// The SRS (Spaced Repetition System) progress data model
+// The SRS progress data model
 export interface UserWordProgress {
   word_slug: string;
   is_completed: boolean;
-  quiz_score: number | null; // e.g. 1 for correct, 0 for incorrect
+  quiz_score: number | null;
   last_reviewed_at: string | null;
-  ease_factor: number; // For SRS future-proofing (default 2.5)
-  interval_days: number; // For SRS future-proofing (default 0)
+  next_review_at: string | null;     // When to show this word next for SRS review
+  first_completed_at: string | null; // Set on first correct answer (used for XP dedup)
+  ease_factor: number;
+  interval_days: number;
+  review_count: number;
 }
 
 export interface UserStats {
@@ -28,110 +32,156 @@ const DEFAULT_STATS: UserStats = {
 export function useVocabProgress() {
   const [stats, setStats] = useState<UserStats>(DEFAULT_STATS);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isAuthLoaded, setIsAuthLoaded] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
 
-  // Load from localStorage or Cloud on mount
   useEffect(() => {
     async function loadProgress() {
-      const currentUser = await getUser();
-      
-      if (currentUser) {
-        setUserId(currentUser.id);
-        const cloudData = await getCloudProgress();
-        if (cloudData && cloudData.length > 0) {
-          const list: UserWordProgress[] = cloudData.map(c => ({
-            word_slug: c.word_slug,
-            is_completed: c.is_completed,
-            quiz_score: c.quiz_score,
-            last_reviewed_at: c.last_reviewed_at,
-            ease_factor: c.ease_factor,
-            interval_days: c.interval_days
-          }));
-          
-          setStats(prev => ({
-            ...prev,
-            totalWordsLearned: list.filter(l => l.is_completed).length,
-            progressList: list
-          }));
-          setIsLoaded(true);
-          return;
+      // Step 1: Immediately read the last known user's cache from localStorage
+      // to prevent UI flash and layout shifts on the home page
+      let initialUserId = "guest";
+      if (typeof window !== "undefined") {
+        initialUserId = localStorage.getItem("vocabpod_last_user_id") || "guest";
+        const storageKey = `vocabpod_progress_${initialUserId}`;
+        const saved = localStorage.getItem(storageKey);
+        if (saved) {
+          try {
+            setStats(JSON.parse(saved));
+            setIsLoaded(true);
+          } catch (e) {
+            console.error("Failed to parse initial local progress", e);
+          }
         }
       }
 
-      // Fallback to local storage
-      const saved = localStorage.getItem("vocabpod_progress");
-      if (saved) {
+      // Step 2: Resolve authenticated user
+      const currentUser = await getUser();
+      const currentId = currentUser?.id || "guest";
+      setUserId(currentUser?.id ?? null);
+      setIsAuthLoaded(true);
+
+      // Persist last user ID for next load
+      localStorage.setItem("vocabpod_last_user_id", currentId);
+
+      // Step 3: If user changed from cached user, reload correct cache
+      if (currentId !== initialUserId) {
+        const storageKey = `vocabpod_progress_${currentId}`;
+        const saved = localStorage.getItem(storageKey);
+        if (saved) {
+          try {
+            setStats(JSON.parse(saved));
+            setIsLoaded(true);
+          } catch (e) {
+            console.error("Failed to parse local progress for user", e);
+          }
+        } else {
+          setStats(DEFAULT_STATS);
+          setIsLoaded(true);
+        }
+      } else {
+        setIsLoaded(true);
+      }
+
+      // Step 4: Fetch fresh cloud data (overwrites local cache with authoritative DB state)
+      if (currentUser) {
         try {
-          setStats(JSON.parse(saved));
+          const [cloudData, profileRes] = await Promise.all([
+            getCloudProgress(),
+            fetch(`/api/profile?userId=${currentUser.id}`)
+          ]);
+
+          const profileData = profileRes.ok ? await profileRes.json() : null;
+          const streak = profileData?.profile?.streak_count || 0;
+
+          if (cloudData && cloudData.length > 0) {
+            const list: UserWordProgress[] = cloudData.map((c: any) => ({
+              word_slug: c.word_slug,
+              is_completed: c.is_completed,
+              quiz_score: c.quiz_score,
+              last_reviewed_at: c.last_reviewed_at,
+              next_review_at: c.next_review_at ?? null,
+              first_completed_at: c.first_completed_at ?? null,
+              ease_factor: c.ease_factor ?? 2.5,
+              interval_days: c.interval_days ?? 0,
+              review_count: c.review_count ?? 0,
+            }));
+
+            setStats({
+              currentStreak: streak,
+              totalWordsLearned: list.filter(l => l.is_completed).length,
+              progressList: list,
+              lastActiveDate: profileData?.profile?.last_active_date || null,
+            });
+          } else if (profileData?.profile) {
+            setStats(prev => ({
+              ...prev,
+              currentStreak: streak,
+            }));
+          }
         } catch (e) {
-          console.error("Failed to parse local progress", e);
+          console.error("Failed to fetch cloud progress/profile", e);
         }
       }
-      setIsLoaded(true);
     }
-    
+
     loadProgress();
   }, []);
 
-  // Save to localStorage whenever stats change (if loaded)
+  // Save to localStorage whenever stats change (only after auth is resolved)
   useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem("vocabpod_progress", JSON.stringify(stats));
+    if (isLoaded && isAuthLoaded) {
+      const storageKey = `vocabpod_progress_${userId || "guest"}`;
+      localStorage.setItem(storageKey, JSON.stringify(stats));
     }
-  }, [stats, isLoaded]);
+  }, [stats, isLoaded, isAuthLoaded, userId]);
 
-  // Mark a word as completed
-  const markWordCompleted = async (wordSlug: string, isQuizCorrect: boolean) => {
-    // 1. Sync to cloud if user exists
-    if (userId) {
-      await saveCloudProgress(wordSlug, isQuizCorrect);
-    }
-
-    // 2. Update local state (which syncs to localStorage)
+  // Mark a word as locally completed (optimistic update before API responds)
+  const markWordCompleted = (wordSlug: string, isQuizCorrect: boolean) => {
+    const normalizedSlug = wordSlug.toLowerCase();
     setStats((prev) => {
-      const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
-      
-      // Update streak
+      const today = getTodayIST();
+
       let newStreak = prev.currentStreak;
       if (prev.lastActiveDate !== today) {
-        // If yesterday, increment. Otherwise, if older, reset to 1.
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        const yesterdayStr = yesterday.toISOString().split("T")[0];
-        
+        const yesterdayStr = getYesterdayIST();
         if (prev.lastActiveDate === yesterdayStr) {
           newStreak += 1;
         } else {
-          newStreak = 1; // reset streak
+          newStreak = 1;
         }
       }
 
-      // Update word progress list
       const existingList = [...prev.progressList];
-      const wordIndex = existingList.findIndex((p) => p.word_slug === wordSlug);
+      const wordIndex = existingList.findIndex((p) => p.word_slug === normalizedSlug);
+      const now = new Date().toISOString();
+      const wasAlreadyCompleted = wordIndex >= 0 && existingList[wordIndex].is_completed;
 
       if (wordIndex >= 0) {
-        // Update existing progress
         existingList[wordIndex] = {
           ...existingList[wordIndex],
-          is_completed: true,
-          quiz_score: isQuizCorrect ? 1 : 0,
-          last_reviewed_at: new Date().toISOString(),
-          // Simple SRS update logic could go here
+          is_completed: isQuizCorrect || existingList[wordIndex].is_completed,
+          quiz_score: isQuizCorrect ? 100 : 0,
+          last_reviewed_at: now,
+          review_count: (existingList[wordIndex].review_count ?? 0) + 1,
+          // SRS fields will be synced via syncWordSRS() after API responds
         };
+        if (isQuizCorrect && !existingList[wordIndex].first_completed_at) {
+          existingList[wordIndex].first_completed_at = now;
+        }
       } else {
-        // Add new progress
         existingList.push({
-          word_slug: wordSlug,
-          is_completed: true,
-          quiz_score: isQuizCorrect ? 1 : 0,
-          last_reviewed_at: new Date().toISOString(),
+          word_slug: normalizedSlug,
+          is_completed: isQuizCorrect,
+          quiz_score: isQuizCorrect ? 100 : 0,
+          last_reviewed_at: now,
+          next_review_at: null,
+          first_completed_at: isQuizCorrect ? now : null,
           ease_factor: 2.5,
-          interval_days: 1,
+          interval_days: 0,
+          review_count: 1,
         });
       }
 
-      // Count unique completed words
       const completedCount = existingList.filter((w) => w.is_completed).length;
 
       return {
@@ -143,14 +193,33 @@ export function useVocabProgress() {
     });
   };
 
+  // Sync SRS fields back from the API response (call after /api/progress responds)
+  const syncWordSRS = (wordSlug: string, nextReviewAt: string, intervalDays: number) => {
+    const normalizedSlug = wordSlug.toLowerCase();
+    setStats((prev) => {
+      const list = [...prev.progressList];
+      const idx = list.findIndex((p) => p.word_slug === normalizedSlug);
+      if (idx >= 0) {
+        list[idx] = {
+          ...list[idx],
+          next_review_at: nextReviewAt,
+          interval_days: intervalDays,
+        };
+      }
+      return { ...prev, progressList: list };
+    });
+  };
+
   const getWordProgress = (wordSlug: string): UserWordProgress | null => {
-    return stats.progressList.find((p) => p.word_slug === wordSlug) || null;
+    const normalizedSlug = wordSlug.toLowerCase();
+    return stats.progressList.find((p) => p.word_slug === normalizedSlug) || null;
   };
 
   return {
     stats,
     isLoaded,
     markWordCompleted,
+    syncWordSRS,
     getWordProgress,
   };
 }

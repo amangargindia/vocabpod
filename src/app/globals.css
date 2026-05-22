@@ -17,6 +17,10 @@
   --foreground: #F5F5F7;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   background-color: var(--background);
   color: var(--foreground);
@@ -45,4 +49,15 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #2C2C2E;
+}
+
+/* Shimmer animation for skeleton loading states */
+@keyframes shimmer {
+  100% { transform: translateX(200%); }
+}
+
+/* Fade-in for tab switches and dropdowns */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }

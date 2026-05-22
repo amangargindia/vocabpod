@@ -2,38 +2,14 @@
 
 import { useState, useRef, useEffect, use } from "react";
 import Link from "next/link";
-import { getWordLesson, WordLesson, getUser, signOut } from "@/lib/supabase";
+import { getWordLesson, WordLesson } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
 import { useVocabProgress } from "@/hooks/useVocabProgress";
-
-// Raw SVG for the Animated Logo (Dark Mode Variant)
-const Logo = () => (
-  <svg viewBox="0 0 350 120" className="w-40 h-14" xmlns="http://www.w3.org/2000/svg">
-    <g stroke="#E04B35" strokeWidth="2.5" strokeLinecap="round">
-      <path d="M 50 40 L 40 30" strokeDasharray="20" strokeDashoffset="20">
-        <animate attributeName="stroke-dashoffset" values="20; 20; 20; -20; -20" keyTimes="0; 0.2; 0.4; 0.6; 1" dur="3s" repeatCount="indefinite" />
-      </path>
-      <path d="M 60 35 L 60 20" strokeDasharray="20" strokeDashoffset="20">
-        <animate attributeName="stroke-dashoffset" values="20; 20; 20; -20; -20" keyTimes="0; 0.2; 0.4; 0.6; 1" dur="3s" repeatCount="indefinite" />
-      </path>
-      <path d="M 70 40 L 80 30" strokeDasharray="20" strokeDashoffset="20">
-        <animate attributeName="stroke-dashoffset" values="20; 20; 20; -20; -20" keyTimes="0; 0.2; 0.4; 0.6; 1" dur="3s" repeatCount="indefinite" />
-      </path>
-    </g>
-    <path d="M 16 35 L 60 102 L 104 35" fill="none" stroke="#F5F5F7" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.3">
-      <animate attributeName="d" values="M 16 35 L 60 102 L 104 35; M 16 35 L 60 102 L 104 35; M 4 55 L 60 110 L 116 55; M 16 35 L 60 102 L 104 35; M 16 35 L 60 102 L 104 35" keyTimes="0; 0.2; 0.4; 0.6; 1" dur="3s" repeatCount="indefinite" calcMode="spline" keySplines="0.5 0 0.5 1; 0.42 0 1 1; 0 0 0.58 1; 1 0 1 1"/>
-    </path>
-    <path d="M 24 35 L 60 92 L 96 35" fill="none" stroke="#F5F5F7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" opacity="0.6">
-      <animate attributeName="d" values="M 24 35 L 60 92 L 96 35; M 24 35 L 60 92 L 96 35; M 10 50 L 60 100 L 110 50; M 24 35 L 60 92 L 96 35; M 24 35 L 60 92 L 96 35" keyTimes="0; 0.2; 0.4; 0.6; 1" dur="3s" repeatCount="indefinite" calcMode="spline" keySplines="0.5 0 0.5 1; 0.42 0 1 1; 0 0 0.58 1; 1 0 1 1"/>
-    </path>
-    <path d="M 34 35 L 60 80 L 86 35" fill="none" stroke="#F5F5F7" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round">
-      <animate attributeName="d" values="M 34 35 L 60 80 L 86 35; M 34 35 L 60 80 L 86 35; M 16 45 L 60 90 L 104 45; M 34 35 L 60 80 L 86 35; M 34 35 L 60 80 L 86 35" keyTimes="0; 0.2; 0.4; 0.6; 1" dur="3s" repeatCount="indefinite" calcMode="spline" keySplines="0.5 0 0.5 1; 0.42 0 1 1; 0 0 0.58 1; 1 0 1 1"/>
-    </path>
-    <circle cx="60" cy="48" r="10" fill="#E04B35">
-      <animate attributeName="cy" values="48; 20; 65; 48; 48" keyTimes="0; 0.2; 0.4; 0.6; 1" dur="3s" repeatCount="indefinite" calcMode="spline" keySplines="0 0 0.58 1; 0.42 0 1 1; 0 0 0.58 1; 1 0 1 1"/>
-    </circle>
-    <text x="125" y="74" fill="#F5F5F7" fontFamily="Inter, sans-serif" fontWeight="700" fontSize="36" letterSpacing="-1">VocabPod</text>
-  </svg>
-);
+import Overlay from "@/components/Overlay";
+import { getCachedAudio } from "@/lib/audioCache";
+import Stickman, { StickmanPose } from "@/components/Stickman";
+import Logo from "@/components/Logo";
+import Footer from "@/components/Footer";
 
 // Recursive JSONB SVG Element Renderer
 interface SVGNode {
@@ -57,6 +33,41 @@ const DynamicSVGNode = ({ node }: { node: SVGNode }) => {
   );
 };
 
+function FloatingStickmen({ pose }: { pose: StickmanPose }) {
+  const [positions, setPositions] = useState<{ top: string; left: string; scale: number; rotation: number; opacity: number }[]>([]);
+
+  useEffect(() => {
+    const count = Math.floor(Math.random() * 3) + 4; // 4 to 6 stickmen
+    const newPositions = Array.from({ length: count }).map(() => ({
+      top: `${Math.random() * 80 + 10}%`,
+      left: `${Math.random() * 80 + 10}%`,
+      scale: Math.random() * 0.5 + 0.5,
+      rotation: Math.random() * 40 - 20,
+      opacity: Math.random() * 0.03 + 0.02,
+    }));
+    setPositions(newPositions);
+  }, []);
+
+  return (
+    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+      {positions.map((pos, i) => (
+        <div 
+          key={i} 
+          className="absolute text-light-gray"
+          style={{
+            top: pos.top,
+            left: pos.left,
+            transform: `scale(${pos.scale}) rotate(${pos.rotation}deg)`,
+            opacity: pos.opacity,
+          }}
+        >
+          <Stickman pose={pose} className="w-64 h-64" headColor="var(--color-terracotta)" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function LessonPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = use(params);
   const wordSlug = resolvedParams.slug;
@@ -65,64 +76,80 @@ export default function LessonPage({ params }: { params: Promise<{ slug: string 
   const [lesson, setLesson] = useState<WordLesson | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [user, setUser] = useState<{email?: string} | null>(null);
+  const { user, isPremium, isLoadingAuth } = useAuth();
+  const [nextWordSlug, setNextWordSlug] = useState<string | null>(null);
+  const [shuffledOptions, setShuffledOptions] = useState<any[]>([]);
 
   // Audio Player State
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [audioSrc, setAudioSrc] = useState<string>("");
   const audioRef = useRef<HTMLAudioElement>(null);
 
   // Quiz State
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [showExplanation, setShowExplanation] = useState(false);
+  const [xpEarned, setXpEarned] = useState(0);
+  const [nextReviewDays, setNextReviewDays] = useState<number | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isFirstCompletion, setIsFirstCompletion] = useState(false);
+  const [quizPassed, setQuizPassed] = useState<boolean | null>(null);
+
+  const { markWordCompleted, syncWordSRS } = useVocabProgress();
 
   // Fetch word lesson from DB/mock on mount
   useEffect(() => {
-    async function loadData() {
+    async function init() {
       try {
         setIsLoading(true);
-        const [data, currentUser] = await Promise.all([
+        const [lessonData, res] = await Promise.all([
           getWordLesson(wordSlug),
-          getUser()
+          fetch("/api/words")
         ]);
-        setLesson(data);
-        setUser(currentUser);
+        
+        if (!lessonData) throw new Error("Word not found.");
+        setLesson(lessonData);
+
+        // Find next word
+        const data = await res.json();
+        const allWords = data.words || [];
+        const currentIndex = allWords.findIndex((w: any) => w.word.toLowerCase() === lessonData.word.toLowerCase());
+        if (currentIndex !== -1 && currentIndex < allWords.length - 1) {
+          setNextWordSlug(allWords[currentIndex + 1].word);
+        }
+
+        // Initialize quiz
+        const q = lessonData.quiz_questions[0];
+        if (q && q.options) {
+          setShuffledOptions([...q.options].sort(() => Math.random() - 0.5));
+        }
+        
+        // Cache audio on load
+        if (lessonData?.audio_url && isPremium) {
+          getCachedAudio(lessonData.audio_url).then(setAudioSrc);
+        }
       } catch (err: any) {
         setError(err.message || "Failed to load vocabulary lesson.");
       } finally {
         setIsLoading(false);
       }
     }
-    loadData();
-  }, [wordSlug]);
-
-  const handleSignOut = async () => {
-    await signOut();
-    setUser(null);
-    window.location.reload();
-  };
+    
+    if (!isLoadingAuth) {
+      init();
+    }
+  }, [wordSlug, isLoadingAuth, isPremium]);
 
   // Sync Audio Progress
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
-    const handleLoadedMetadata = () => setDuration(audio.duration || 120);
-    const handleEnded = () => setIsPlaying(false);
+    if (!audio.paused) setIsPlaying(true);
 
-    audio.addEventListener("timeupdate", handleTimeUpdate);
-    audio.addEventListener("loadedmetadata", handleLoadedMetadata);
-    audio.addEventListener("ended", handleEnded);
-
-    return () => {
-      audio.removeEventListener("timeupdate", handleTimeUpdate);
-      audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
-      audio.removeEventListener("ended", handleEnded);
-    };
-  }, [lesson]); // Re-attach when lesson (and therefore audio element) changes
+  }, [lesson]);
 
   const togglePlay = () => {
     if (!audioRef.current) return;
@@ -150,15 +177,48 @@ export default function LessonPage({ params }: { params: Promise<{ slug: string 
     return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
   };
 
-  const { markWordCompleted } = useVocabProgress();
-
-  const handleQuizSubmit = () => {
-    if (selectedOption === null || !lesson) return;
+  const handleOptionClick = async (idx: number) => {
+    if (quizSubmitted || isSubmitting || !lesson) return;
+    setSelectedOption(idx);
+    setIsSubmitting(true);
     setQuizSubmitted(true);
     
-    const isCorrect = lesson.quiz_questions[0].options[selectedOption].isCorrect;
-    markWordCompleted(wordSlug, isCorrect);
+    const isCorrect = shuffledOptions[idx].isCorrect;
+    const score = isCorrect ? 100 : 0;
+    setQuizPassed(isCorrect);
     
+    // Normalize word slug for consistent database and state matching
+    const normalizedSlug = decodeURIComponent(wordSlug).toLowerCase();
+    
+    markWordCompleted(normalizedSlug, isCorrect);
+    
+    if (user?.id) {
+      try {
+        const res = await fetch("/api/progress", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: user.id,
+            wordSlug: normalizedSlug,
+            score,
+            wordLevel: (lesson as any).level ?? 1,
+          }),
+        });
+        const data = await res.json();
+        if (data.xpEarned) setXpEarned(data.xpEarned);
+        if (data.nextReviewIn !== undefined) setNextReviewDays(data.nextReviewIn);
+        if (data.isFirstCompletion) setIsFirstCompletion(true);
+        // Sync SRS state into the local hook so home page updates instantly
+        if (data.nextReviewIn !== undefined) {
+          const nextReviewAt = new Date(Date.now() + data.nextReviewIn * 24 * 60 * 60 * 1000).toISOString();
+          syncWordSRS(normalizedSlug, nextReviewAt, data.nextReviewIn);
+        }
+      } catch (e) {
+        console.warn("Progress sync failed:", e);
+      }
+    }
+    
+    setIsSubmitting(false);
     setTimeout(() => setShowExplanation(true), 200);
   };
 
@@ -196,222 +256,315 @@ export default function LessonPage({ params }: { params: Promise<{ slug: string 
 
   const activeQuiz = lesson.quiz_questions[0];
 
+  const isAccessible = isPremium || (lesson as any).is_free_preview;
+
   return (
-    <div className="flex flex-col min-h-screen bg-absolute-black text-light-gray select-none">
-      <audio ref={audioRef} src={lesson.audio_url} preload="metadata" />
+    <div className="flex flex-col md:flex-row min-h-screen bg-absolute-black text-light-gray select-none relative">
+      <audio 
+        ref={audioRef} 
+        src={audioSrc || lesson.audio_url} 
+        preload="metadata" 
+        autoPlay 
+        onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
+        onLoadedMetadata={(e) => setDuration(e.currentTarget.duration || 120)}
+        onEnded={() => setIsPlaying(false)}
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
+      />
 
-      {/* Header */}
-      <header className="sticky top-0 z-50 backdrop-blur-md bg-absolute-black/80 border-b border-white/5 px-6 py-4 md:px-12 transition-all">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <Link href="/">
-            <Logo />
-          </Link>
-          <div className="flex items-center space-x-6">
-            <span className="text-xs text-muted-ash hidden md:inline-flex items-center">
-              <span className="w-1.5 h-1.5 rounded-full bg-terracotta mr-2 animate-pulse"></span>
-              Vertical Slice: Preview Mode
-            </span>
-            {user ? (
-              <div className="group relative">
-                <div className="w-10 h-10 rounded-full bg-card-gray border border-white/10 flex items-center justify-center font-bold text-muted-ash cursor-pointer hover:border-white/30 transition-colors uppercase">
-                  {user.email ? user.email.charAt(0) : "U"}
-                </div>
-                <div className="absolute right-0 mt-2 w-32 bg-card-gray border border-white/10 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
-                  <button onClick={handleSignOut} className="w-full text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-terracotta hover:bg-white/5 rounded-xl">
-                    Sign Out
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <Link href="/login" className="text-xs font-semibold px-4 py-2 border border-white/10 rounded-full hover:bg-white/5 transition-all uppercase tracking-wider">
-                Sign In
-              </Link>
-            )}
-          </div>
-        </div>
-      </header>
+      <div className="flex-1 min-w-0 relative z-10 pb-[70px] md:pb-0">
+        {/* Sticky Section Navbar */}
+        <nav className="sticky top-0 z-40 bg-absolute-black/95 backdrop-blur-md border-b border-white/5 px-4 py-2.5 md:px-8 flex items-center justify-center gap-1.5 overflow-x-auto custom-scrollbar shadow-lg">
+          <a href="#word"    className="px-3 py-1.5 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest bg-terracotta/10 border border-terracotta/25 text-terracotta hover:bg-terracotta/20 transition-all shrink-0">Word</a>
+          <a href="#mnemonic" className="px-3 py-1.5 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest bg-white/5 border border-white/10 text-muted-ash hover:bg-terracotta/10 hover:text-terracotta hover:border-terracotta/25 transition-all shrink-0">Mnemonic</a>
+          <a href="#story"   className="px-3 py-1.5 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest bg-white/5 border border-white/10 text-muted-ash hover:bg-terracotta/10 hover:text-terracotta hover:border-terracotta/25 transition-all shrink-0">Story</a>
+          <a href="#usage"   className="px-3 py-1.5 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest bg-white/5 border border-white/10 text-muted-ash hover:bg-terracotta/10 hover:text-terracotta hover:border-terracotta/25 transition-all shrink-0">Usage</a>
+          <a href="#quiz"    className="px-3 py-1.5 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest bg-white/5 border border-white/10 text-muted-ash hover:bg-terracotta/10 hover:text-terracotta hover:border-terracotta/25 transition-all shrink-0">Quiz</a>
+        </nav>
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-6 py-10 md:py-16 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        
-        {/* Left Column: Lesson Narrative & Player */}
-        <section className="lg:col-span-7 bg-card-gray border border-white/5 rounded-3xl p-8 md:p-12 shadow-2xl flex flex-col space-y-8">
+        {/* Main Content Area */}
+        <main className="flex-1 max-w-3xl w-full mx-auto px-4 py-8 md:px-6 md:py-12 space-y-8 md:space-y-12 overflow-x-hidden">
           
-          {/* Header Typography */}
-          <div className="space-y-4">
-            <div className="flex items-center space-x-3">
-              <span className="text-xs font-bold uppercase tracking-widest px-3 py-1 bg-dark-blush text-terracotta rounded-full border border-terracotta/20">
+          {/* 1. Word Header & Audio */}
+          <section id="word" className="bg-card-gray border border-white/5 rounded-3xl p-6 md:p-10 shadow-2xl flex flex-col space-y-6 scroll-mt-24">
+            <div className="space-y-4 text-center">
+              <span className="inline-block text-xs font-bold uppercase tracking-widest px-4 py-1.5 bg-dark-blush text-terracotta rounded-full border border-terracotta/20">
                 {lesson.type}
               </span>
-              <span className="text-xs text-muted-ash font-medium tracking-wider">
-                WEEK 1 • LESSON 1
-              </span>
-            </div>
-            <h1 className="text-5xl md:text-6xl font-bold tracking-tight text-light-gray uppercase">
-              {lesson.word}
-            </h1>
-            <p className="text-xl text-muted-ash italic font-sans">{lesson.phonetic}</p>
-          </div>
-
-          {/* Premium Audio Player */}
-          <div className="bg-deep-canvas p-6 rounded-2xl border border-white/5 flex flex-col space-y-4">
-            <div className="flex items-center justify-between">
-              <button 
-                onClick={togglePlay}
-                className="w-12 h-12 rounded-full bg-terracotta text-light-gray flex items-center justify-center transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(224,75,53,0.4)]"
-              >
-                {isPlaying ? (
-                  <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                    <rect x="6" y="4" width="4" height="16" rx="1" />
-                    <rect x="14" y="4" width="4" height="16" rx="1" />
-                  </svg>
-                ) : (
-                  <svg className="w-5 h-5 fill-current translate-x-[2px]" viewBox="0 0 24 24">
-                    <path d="M8 5v14l11-7z" />
-                  </svg>
-                )}
-              </button>
-              
-              <div className="flex-1 mx-4 space-y-2">
-                <input 
-                  type="range"
-                  min="0"
-                  max={duration || 100}
-                  value={currentTime}
-                  onChange={handleProgressBarChange}
-                  className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-terracotta focus:outline-none"
-                />
-                <div className="flex justify-between text-xs text-muted-ash">
-                  <span>{formatTime(currentTime)}</span>
-                  <span>{formatTime(duration)}</span>
-                </div>
-              </div>
-
-              <div className="text-xs font-bold text-terracotta bg-dark-blush border border-terracotta/10 px-3 py-1 rounded-full uppercase tracking-wider">
-                1.5x speed
-              </div>
-            </div>
-          </div>
-
-          {/* Mnemonic Narrative */}
-          <div className="space-y-6 border-t border-white/5 pt-8">
-            <h3 className="text-sm font-bold uppercase tracking-widest text-muted-ash">
-              The Mnemonic Story
-            </h3>
-            <p className="text-lg leading-loose text-light-gray/90 font-medium">
-              {lesson.definition}
-            </p>
-            <p className="text-md leading-loose text-muted-ash font-normal">
-              {lesson.narrative}
-            </p>
-          </div>
-
-        </section>
-
-        {/* Right Column: Illustration & Interactive Quiz */}
-        <section className="lg:col-span-5 flex flex-col space-y-8">
-          
-          {/* Mnemonic Spot-Color Illustration */}
-          <div className="bg-card-gray border border-white/5 rounded-3xl p-8 shadow-2xl flex items-center justify-center min-h-[300px] overflow-hidden relative">
-            <div className="absolute top-4 left-4 text-xs font-semibold text-muted-ash uppercase tracking-wider">
-              Visual Mnemonic Anchor
+              <h1 className="text-5xl md:text-7xl font-black tracking-tight text-light-gray uppercase">
+                {lesson.word}
+              </h1>
+              <p className="text-xl md:text-2xl text-muted-ash italic font-sans">{lesson.phonetic}</p>
             </div>
             
-            {/* Custom Inline SVG dynamically rendering the JSONB vectors */}
-            <svg viewBox="0 0 400 300" className="w-full h-auto max-w-sm mx-auto" xmlns="http://www.w3.org/2000/svg">
-              {lesson.svg_elements.map((node, index) => (
-                <DynamicSVGNode key={index} node={node} />
-              ))}
-            </svg>
-          </div>
-
-          {/* Interactive Quiz Component */}
-          <div className="bg-card-gray border border-white/5 rounded-3xl p-8 shadow-2xl flex flex-col space-y-6">
-            <h3 className="text-sm font-bold uppercase tracking-widest text-muted-ash">
-              Active Recall Quiz
-            </h3>
-            <p className="text-md font-semibold text-light-gray leading-snug">
-              {activeQuiz.question}
-            </p>
-
-            <div className="flex flex-col space-y-3">
-              {activeQuiz.options.map((option, idx) => {
-                const isSelected = selectedOption === idx;
-                let optionStyle = "border-white/5 bg-deep-canvas text-light-gray hover:bg-white/5";
-                
-                if (isSelected) {
-                  if (quizSubmitted) {
-                    optionStyle = option.isCorrect 
-                      ? "border-emerald-500/30 bg-emerald-950/20 text-emerald-400"
-                      : "border-terracotta/30 bg-dark-blush text-terracotta";
-                  } else {
-                    optionStyle = "border-terracotta/50 bg-dark-blush text-terracotta";
-                  }
-                } else if (quizSubmitted && option.isCorrect) {
-                  optionStyle = "border-emerald-500/20 bg-emerald-950/10 text-emerald-400/80";
-                }
-
-                return (
-                  <button
-                    key={idx}
-                    disabled={quizSubmitted}
-                    onClick={() => setSelectedOption(idx)}
-                    className={`w-full text-left p-4 rounded-xl border text-sm font-medium transition-all duration-200 ${optionStyle}`}
-                  >
-                    {option.text}
-                  </button>
-                );
-              })}
+            {/* Meaning */}
+            <div className="text-center pt-4">
+              <p className="text-xl md:text-3xl leading-relaxed md:leading-snug text-light-gray/90 font-medium">
+                {lesson.definition}
+              </p>
             </div>
 
-            {/* CTA / Reveal State */}
-            {!quizSubmitted ? (
-              <button
-                disabled={selectedOption === null}
-                onClick={handleQuizSubmit}
-                className={`w-full py-4 rounded-full font-bold text-sm tracking-wide transition-all duration-300 ${
-                  selectedOption !== null 
-                    ? "bg-terracotta text-light-gray hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(224,75,53,0.4)] cursor-pointer"
-                    : "bg-white/5 text-muted-ash cursor-not-allowed"
-                }`}
-              >
-                SUBMIT ANSWER
-              </button>
-            ) : (
-              <div 
-                className={`transition-all duration-500 overflow-hidden transform ${
-                  showExplanation ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
-                } bg-deep-canvas border border-white/5 p-5 rounded-2xl space-y-3`}
-              >
-                <div className="flex items-center space-x-2">
-                  <span className={`text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
-                    activeQuiz.options[selectedOption!].isCorrect
-                      ? "bg-emerald-500/20 text-emerald-400"
-                      : "bg-terracotta/20 text-terracotta"
-                  }`}>
-                    {activeQuiz.options[selectedOption!].isCorrect ? "Correct" : "Incorrect"}
+            {/* Premium Audio Player */}
+            <div className="bg-deep-canvas p-4 md:p-6 rounded-2xl border border-white/5 flex flex-col space-y-4 relative overflow-hidden mt-6 max-w-sm mx-auto w-full">
+              {!isPremium && (
+                <div className="absolute inset-0 z-10 bg-absolute-black/60 backdrop-blur-sm flex flex-col items-center justify-center">
+                  <span className="text-[10px] md:text-xs font-bold text-terracotta bg-dark-blush px-3 py-1 rounded-full uppercase tracking-widest mb-2 border border-terracotta/20">
+                    Premium Feature
                   </span>
-                  <span className="text-xs text-muted-ash">QUIZ COMPLETED</span>
+                  <Link href="/upgrade" className="text-xs font-semibold text-light-gray hover:text-white transition-colors">
+                    Upgrade to unlock
+                  </Link>
                 </div>
-                <p className="text-sm text-muted-ash leading-relaxed">
-                  {activeQuiz.explanation}
-                </p>
-                <button className="w-full mt-2 py-3 bg-white/5 border border-white/10 rounded-full font-semibold text-xs tracking-wider text-light-gray hover:bg-white/10 transition-all uppercase">
-                  Next Word (Locked)
+              )}
+              <div className="flex items-center justify-between space-x-4">
+                <button 
+                  onClick={togglePlay}
+                  className="w-10 h-10 md:w-12 md:h-12 shrink-0 rounded-full bg-terracotta text-light-gray flex items-center justify-center transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(224,75,53,0.4)]"
+                >
+                  {isPlaying ? (
+                    <svg className="w-4 h-4 md:w-5 md:h-5 fill-current" viewBox="0 0 24 24">
+                      <rect x="6" y="4" width="4" height="16" rx="1" />
+                      <rect x="14" y="4" width="4" height="16" rx="1" />
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4 md:w-5 md:h-5 fill-current translate-x-[2px]" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                  )}
                 </button>
+                
+                <div className="flex-1 space-y-1 md:space-y-2">
+                  <input 
+                    type="range"
+                    min="0"
+                    max={duration || 100}
+                    value={currentTime}
+                    onChange={handleProgressBarChange}
+                    className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-terracotta focus:outline-none"
+                  />
+                  <div className="flex justify-between text-[10px] text-muted-ash">
+                    <span>{formatTime(currentTime)}</span>
+                    <span>{formatTime(duration)}</span>
+                  </div>
+                </div>
               </div>
-            )}
+            </div>
+          </section>
 
-          </div>
+          {/* 2. Mnemonic Anchor & Explanation */}
+          <Overlay isLocked={!isAccessible} wordSlug={wordSlug} lockedText="Visual Mnemonic">
+            <section id="mnemonic" className="bg-card-gray border border-white/5 rounded-3xl p-6 md:p-10 shadow-2xl flex flex-col space-y-6 scroll-mt-24">
+              <div className="flex items-center space-x-3 border-b border-white/5 pb-3">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#E04B35" strokeWidth="1.8" strokeLinecap="round" className="w-5 h-5 shrink-0">
+                  <path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                  <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7Z" />
+                </svg>
+                <h3 className="text-xs md:text-sm font-black uppercase tracking-widest text-terracotta">Visual Mnemonic</h3>
+              </div>
+              <div className="flex flex-col md:flex-row items-center space-y-6 md:space-y-0 md:space-x-8">
+                <div className="w-1/2 md:w-1/3 aspect-square shrink-0 rounded-2xl flex items-center justify-center relative bg-deep-canvas overflow-hidden">
+                  {lesson.custom_image_url ? (
+                    <img src={lesson.custom_image_url} alt="Mnemonic" className="w-full h-full object-contain p-4 drop-shadow-xl" />
+                  ) : lesson.custom_svg ? (
+                    <div 
+                      className="w-full h-full p-4 flex items-center justify-center text-light-gray svg-mnemonic-container [&>svg]:w-full [&>svg]:h-full"
+                      dangerouslySetInnerHTML={{ __html: lesson.custom_svg }}
+                    />
+                  ) : lesson.svg_elements && lesson.svg_elements.length > 0 ? (
+                    <svg viewBox="0 0 400 300" className="w-full h-full p-4" xmlns="http://www.w3.org/2000/svg">
+                      {lesson.svg_elements.map((node, index) => (
+                        <DynamicSVGNode key={index} node={node} />
+                      ))}
+                    </svg>
+                  ) : (
+                    <p className="text-xs text-muted-ash p-4 text-center">No visual anchor provided.</p>
+                  )}
+                </div>
+                <div className="flex-1 space-y-3">
+                  <p className="text-sm md:text-base leading-relaxed text-light-gray/90 font-normal">
+                    {lesson.narrative}
+                  </p>
+                </div>
+              </div>
+            </section>
+          </Overlay>
 
-        </section>
+          {/* 3. Story Section with Stickman */}
+          <Overlay isLocked={!isPremium} wordSlug={wordSlug} lockedText="Story Reinforcement">
+            <section id="story" className="bg-card-gray border border-white/5 p-6 md:p-10 rounded-3xl shadow-2xl space-y-6 scroll-mt-24">
+              <div className="flex items-center space-x-3 border-b border-white/5 pb-3">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#E04B35" strokeWidth="1.8" strokeLinecap="round" className="w-5 h-5 shrink-0">
+                  <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+                <h3 className="text-xs md:text-sm font-black uppercase tracking-widest text-terracotta">Story Reinforcement</h3>
+              </div>
+              <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
+                {lesson.stickman_id && (
+                  <div className="shrink-0 mx-auto md:mx-0 bg-deep-canvas p-4 rounded-2xl border border-white/5">
+                    <Stickman pose={lesson.stickman_id as StickmanPose} className="w-20 h-20 md:w-24 md:h-24 drop-shadow-xl" headColor="var(--color-terracotta)" />
+                  </div>
+                )}
+                <p className="flex-1 text-base md:text-lg leading-relaxed md:leading-loose text-muted-ash">
+                  {(lesson as any).story ? (lesson as any).story.split(new RegExp(`(${lesson.word})`, "gi")).map((part: string, i: number) =>
+                    part.toLowerCase() === lesson.word.toLowerCase()
+                      ? <mark key={i} className="bg-transparent text-terracotta font-bold not-italic">{part}</mark>
+                      : part
+                  ) : "No story provided."}
+                </p>
+              </div>
+            </section>
+          </Overlay>
 
-      </main>
+          {/* 4. Real Life Usage Section */}
+          <Overlay isLocked={!isPremium} wordSlug={wordSlug} lockedText="Real Life Usage">
+            <section id="usage" className="bg-card-gray border border-white/5 p-6 md:p-10 rounded-3xl shadow-2xl space-y-6 scroll-mt-24">
+              <div className="flex items-center space-x-3 border-b border-white/5 pb-3">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#E04B35" strokeWidth="1.8" strokeLinecap="round" className="w-5 h-5 shrink-0">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10Z" />
+                </svg>
+                <h3 className="text-xs md:text-sm font-black uppercase tracking-widest text-terracotta">Real Life Scenarios</h3>
+              </div>
+              <div className="space-y-6 md:space-y-8 pt-2">
+                {(lesson as any).real_life_usage && (lesson as any).real_life_usage.length > 0 ? (
+                  (lesson as any).real_life_usage.map((usage: any, idx: number) => (
+                    <div key={idx} className="space-y-2">
+                      <h4 className="text-[10px] md:text-xs font-bold text-muted-ash uppercase tracking-wider bg-deep-canvas inline-block px-3 py-1 rounded-lg border border-white/5">{usage.context}</h4>
+                      <p className="text-sm md:text-base leading-relaxed text-light-gray/90 mt-2 pl-1 border-l-2 border-terracotta/30">
+                        {usage.example.split(new RegExp(`(${lesson.word})`, "gi")).map((part: string, i: number) =>
+                          part.toLowerCase() === lesson.word.toLowerCase()
+                            ? <mark key={i} className="bg-transparent text-terracotta font-bold not-italic">{part}</mark>
+                            : part
+                        )}
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm md:text-base text-muted-ash">No real life usage scenarios provided.</p>
+                )}
+              </div>
+            </section>
+          </Overlay>
 
-      {/* Footer */}
-      <footer className="py-8 border-t border-white/5 px-6 text-center text-xs text-muted-ash">
-        <p>© 2026 VocabPod. Handcrafted with Apple-Inspired Minimalism & Cinematic Spot Color.</p>
-      </footer>
+          {/* 5. Interactive Quiz Component */}
+          <Overlay isLocked={!isAccessible} wordSlug={wordSlug} lockedText="Active Recall Quiz">
+            <section id="quiz" className="bg-card-gray border border-white/5 rounded-3xl p-6 md:p-10 shadow-2xl flex flex-col space-y-8 scroll-mt-24">
+              <div className="flex items-center space-x-3 border-b border-white/5 pb-3">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#E04B35" strokeWidth="1.8" strokeLinecap="round" className="w-5 h-5 shrink-0">
+                  <path d="M9 11l3 3L22 4" />
+                  <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+                </svg>
+                <div className="flex-1 flex flex-col md:flex-row md:items-center justify-between gap-2">
+                  <h3 className="text-xs md:text-sm font-black uppercase tracking-widest text-terracotta">Active Recall Quiz</h3>
+                  <div className="flex items-center space-x-1.5 text-muted-ash">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="w-3.5 h-3.5">
+                      <circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>
+                    </svg>
+                    <span className="text-[9px] md:text-[10px] uppercase tracking-wider font-bold">Word marked complete on quiz attempt</span>
+                  </div>
+                </div>
+              </div>
+              <p className="text-lg md:text-xl font-semibold text-light-gray leading-snug">
+                {activeQuiz.question}
+              </p>
+
+              <div className="flex flex-col space-y-4">
+                {activeQuiz.options.map((option, idx) => {
+                  const isSelected = selectedOption === idx;
+                  let optionStyle = "border-white/5 bg-deep-canvas text-light-gray hover:bg-white/5";
+                  
+                  if (isSelected) {
+                    if (quizSubmitted) {
+                      optionStyle = option.isCorrect 
+                        ? "border-emerald-500/30 bg-emerald-950/20 text-emerald-400"
+                        : "border-terracotta/30 bg-dark-blush text-terracotta";
+                    } else {
+                      optionStyle = "border-terracotta/50 bg-dark-blush text-terracotta";
+                    }
+                  } else if (quizSubmitted && option.isCorrect) {
+                    optionStyle = "border-emerald-500/20 bg-emerald-950/10 text-emerald-400/80";
+                  }
+
+                  return (
+                    <button
+                      key={idx}
+                      disabled={quizSubmitted}
+                      onClick={() => handleOptionClick(idx)}
+                      className={`w-full text-left p-5 rounded-2xl border text-sm md:text-base font-medium transition-all duration-200 ${optionStyle}`}
+                    >
+                      {option.text}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {quizSubmitted && (
+                <div 
+                  className={`transition-all duration-500 overflow-hidden transform ${
+                    showExplanation ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
+                  } bg-deep-canvas border border-white/5 p-6 md:p-8 rounded-3xl space-y-6 mt-4`}
+                >
+                  <div className="flex items-center justify-between flex-wrap gap-3">
+                    <div className="flex items-center space-x-3">
+                      <span className={`text-[10px] md:text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-md ${
+                        shuffledOptions[selectedOption!]?.isCorrect
+                          ? "bg-emerald-500/20 text-emerald-400"
+                          : "bg-terracotta/20 text-terracotta"
+                      }`}>
+                        {shuffledOptions[selectedOption!]?.isCorrect ? "Correct" : "Incorrect"}
+                      </span>
+                      <span className="text-xs text-muted-ash uppercase tracking-wider font-semibold">
+                        {isFirstCompletion
+                          ? "New word learned!"
+                          : quizPassed
+                          ? "Great review"
+                          : "Keep practicing"}
+                      </span>
+                    </div>
+                    {xpEarned > 0 && (
+                      <span className="text-xs font-black text-amber-400 bg-amber-950/30 border border-amber-500/20 px-3 py-1 rounded-full animate-pulse">
+                        +{xpEarned} XP
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-base md:text-lg text-muted-ash leading-relaxed">
+                    {activeQuiz.explanation}
+                  </p>
+                  {nextReviewDays !== null && (
+                    <div className="flex items-center space-x-3 text-xs md:text-sm text-muted-ash border-t border-white/5 pt-4">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-5 h-5 text-terracotta shrink-0">
+                        <rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" />
+                      </svg>
+                      <span>
+                        {quizPassed
+                          ? nextReviewDays === 1
+                            ? "Next review: tomorrow."
+                            : `Next review: in ${nextReviewDays} days.`
+                          : nextReviewDays === 1
+                            ? "You'll see this word again tomorrow."
+                            : `You'll see this word again in ${nextReviewDays} days.`}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex flex-col md:flex-row gap-4 w-full mt-4">
+                    <Link href="/" className="flex-1 block py-4 bg-white/5 border border-white/10 rounded-full font-bold text-xs md:text-sm tracking-wider text-light-gray hover:bg-white/10 transition-all uppercase text-center">
+                      Home
+                    </Link>
+                    {nextWordSlug && (
+                      <Link href={`/lesson/${nextWordSlug}`} className="flex-1 block py-4 bg-terracotta border border-terracotta rounded-full font-bold text-xs md:text-sm tracking-wider text-light-gray hover:shadow-[0_0_20px_rgba(224,75,53,0.4)] transition-all uppercase text-center">
+                        Next Word
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              )}
+            </section>
+          </Overlay>
+
+        </main>
+
+        {/* Footer */}
+      <Footer />
+      </div>
     </div>
   );
 }

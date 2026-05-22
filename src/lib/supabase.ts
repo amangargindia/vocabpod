@@ -22,10 +22,17 @@ export interface WordLesson {
     props: Record<string, any>;
     children?: WordLesson["svg_elements"];
   }>;
+  stickman_id?: string;
+  custom_image_url?: string;
+  custom_svg?: string;
   quiz_questions: Array<{
     question: string;
     options: Array<{ text: string; isCorrect: boolean }>;
     explanation: string;
+  }>;
+  real_life_usage?: Array<{
+    context: string;
+    example: string;
   }>;
   created_at: string;
 }
@@ -116,9 +123,44 @@ export const mockLessons: Record<string, WordLesson> = {
   }
 };
 
-// Fetch function that transparently loads from Supabase or mock data
+let cachedFeed: any[] | null = null;
+const cachedLessons: Record<string, WordLesson> = {};
+
+export function clearLessonsCache() {
+  cachedFeed = null;
+  Object.keys(cachedLessons).forEach((key) => delete cachedLessons[key]);
+}
+
 export async function getWordLesson(wordSlug: string): Promise<WordLesson> {
-  const normalizedWord = wordSlug.toLowerCase();
+  const decoded = decodeURIComponent(wordSlug);
+  const normalizedWord = decoded.toLowerCase();
+  
+  if (cachedLessons[normalizedWord]) {
+    // Trigger background refresh to keep cache updated
+    if (supabase) {
+      (async () => {
+        try {
+          const { data, error } = await supabase
+            .from("words")
+            .select("*")
+            .eq("word", normalizedWord)
+            .single();
+          if (!error && data) {
+            cachedLessons[normalizedWord] = data as WordLesson;
+          }
+        } catch (e) {}
+      })();
+    }
+    
+    let lessonData = cachedLessons[normalizedWord];
+    const sub = await getUserSubscription();
+    if (!sub.is_premium) {
+      lessonData = { ...lessonData, audio_url: "" };
+    }
+    return lessonData;
+  }
+  
+  let lessonData: WordLesson | null = null;
   
   if (supabase) {
     try {
@@ -129,46 +171,122 @@ export async function getWordLesson(wordSlug: string): Promise<WordLesson> {
         .single();
         
       if (!error && data) {
-        return data as WordLesson;
+        lessonData = data as WordLesson;
+      } else {
+        console.warn("Supabase query error or record not found, falling back to mock data:", error);
       }
-      console.warn("Supabase query error or record not found, falling back to mock data:", error);
     } catch (e) {
       console.error("Supabase client failed, falling back to mock data:", e);
     }
   }
 
   // Fallback to local mock data
-  const localLesson = mockLessons[normalizedWord];
-  if (!localLesson) {
-    throw new Error(`Word lesson '${wordSlug}' not found in database or mock datasets.`);
+  if (!lessonData) {
+    lessonData = mockLessons[normalizedWord];
+    if (!lessonData) {
+      throw new Error(`Word lesson '${wordSlug}' not found in database or mock datasets.`);
+    }
   }
-  return localLesson;
+
+  // Cache raw lesson data before subscription-based scrubbing
+  cachedLessons[normalizedWord] = lessonData;
+
+  // Security: Scrub audio URL if the user is not Premium
+  const sub = await getUserSubscription();
+  if (!sub.is_premium) {
+    lessonData = { ...lessonData, audio_url: "" };
+  }
+
+  return lessonData;
 }
 
 export async function getWordFeed() {
+  // If we have an in-memory cache, return it and refresh in background
+  if (cachedFeed) {
+    if (supabase) {
+      (async () => {
+        try {
+          const { data, error } = await supabase
+            .from("words")
+            .select("id, word, type, definition, level, category, is_free_preview, created_at")
+            .order("created_at", { ascending: false });
+          if (!error && data && data.length > 0) {
+            cachedFeed = data;
+            if (typeof window !== "undefined") {
+              localStorage.setItem("vocabpod_feed_cache", JSON.stringify(data));
+            }
+          }
+        } catch (e) {}
+      })();
+    }
+    return cachedFeed;
+  }
+
+  // Try to load from localStorage first
+  if (typeof window !== "undefined") {
+    try {
+      const local = localStorage.getItem("vocabpod_feed_cache");
+      if (local) {
+        const parsed = JSON.parse(local);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          cachedFeed = parsed;
+          // Trigger background fetch to keep fresh
+          if (supabase) {
+            (async () => {
+              try {
+                const { data, error } = await supabase
+                  .from("words")
+                  .select("id, word, type, definition, level, category, is_free_preview, created_at")
+                  .order("created_at", { ascending: false });
+                if (!error && data && data.length > 0) {
+                  cachedFeed = data;
+                  localStorage.setItem("vocabpod_feed_cache", JSON.stringify(data));
+                }
+              } catch (e) {}
+            })();
+          }
+          return parsed;
+        }
+      }
+    } catch (e) {}
+  }
+
+  let data: any[] | null = null;
+
   if (supabase) {
     try {
-      const { data, error } = await supabase
+      const { data: dbData, error } = await supabase
         .from("words")
-        .select("id, word, type, definition, created_at")
+        .select("id, word, type, definition, level, category, is_free_preview, created_at")
         .order("created_at", { ascending: false });
         
-      if (!error && data) {
-        return data;
+      if (!error && dbData && dbData.length > 0) {
+        data = dbData;
       }
     } catch (e) {
       console.error("Feed: Supabase failed, falling back to mock data:", e);
     }
   }
 
-  // Fallback to mock data
-  return Object.values(mockLessons).map((l) => ({
-    id: l.id,
-    word: l.word,
-    type: l.type,
-    definition: l.definition,
-    created_at: l.created_at
-  }));
+  if (!data) {
+    // Fallback to mock data
+    data = Object.values(mockLessons).map((l) => ({
+      id: l.id,
+      word: l.word,
+      type: l.type,
+      definition: l.definition,
+      level: 1,
+      category: null,
+      is_free_preview: false,
+      created_at: l.created_at
+    }));
+  }
+
+  cachedFeed = data;
+  if (typeof window !== "undefined") {
+    localStorage.setItem("vocabpod_feed_cache", JSON.stringify(data));
+  }
+  return data;
 }
 
 // ==========================================
@@ -178,6 +296,10 @@ export async function getWordFeed() {
 export async function getUser() {
   if (supabase) {
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        return { id: session.user.id, email: session.user.email };
+      }
       const { data: { user } } = await supabase.auth.getUser();
       if (user) return { id: user.id, email: user.email };
     } catch (e) {
@@ -191,6 +313,29 @@ export async function getUser() {
     if (mockSession) return JSON.parse(mockSession);
   }
   return null;
+}
+
+export async function getUserSubscription() {
+  const user = await getUser();
+  if (!user) return { is_premium: false };
+
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from("users_subscriptions")
+        .select("is_premium")
+        .eq("user_id", user.id)
+        .order("updated_at", { ascending: false })
+        .limit(1);
+      
+      if (data && data.length > 0) return data[0];
+    } catch (e) {
+      console.warn("Failed to fetch subscription:", e);
+    }
+  }
+
+  // Fallback
+  return { is_premium: false };
 }
 
 export async function signUp(email: string, password: string): Promise<{ success: boolean; message: string }> {
@@ -261,6 +406,7 @@ export async function signOut() {
   
   if (typeof window !== "undefined") {
     localStorage.removeItem("vocabpod_mock_user");
+    localStorage.setItem("vocabpod_last_user_id", "guest");
   }
 }
 
@@ -330,25 +476,38 @@ export async function getCloudProgress() {
 // ==========================================
 
 export async function insertWordLesson(lesson: Omit<WordLesson, "id" | "created_at">) {
-  if (supabase) {
+  const user = await getUser();
+  if (supabase && user?.email) {
     try {
-      const { data, error } = await supabase
-        .from("words")
-        .insert({
+      const res = await fetch("/api/admin/words", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
           word: lesson.word.toLowerCase(),
           phonetic: lesson.phonetic,
           type: lesson.type,
           definition: lesson.definition,
           narrative: lesson.narrative,
+          story: (lesson as any).story || null,
+          level: (lesson as any).level ?? 1,
+          category: (lesson as any).category || null,
+          is_free_preview: (lesson as any).is_free_preview ?? false,
+          stickman_id: (lesson as any).stickman_id || null,
+          custom_image_url: (lesson as any).custom_image_url || null,
+          custom_svg: (lesson as any).custom_svg || null,
           audio_url: lesson.audio_url,
           svg_elements: lesson.svg_elements,
+          real_life_usage: lesson.real_life_usage || null,
           quiz_questions: lesson.quiz_questions
         })
-        .select()
-        .single();
-        
-      if (error) throw error;
-      return { success: true, data };
+      });
+      
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Failed to insert word.");
+      
+      return { success: true, data: json.data };
     } catch (e: any) {
       console.error("Admin Insert failed:", e);
       throw new Error(e.message || "Failed to insert into Supabase.");
