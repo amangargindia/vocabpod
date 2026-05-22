@@ -1,5 +1,5 @@
 const supabaseUrl = "https://jnxfyllfxvqdoyxwhlmg.supabase.co";
-const serviceRoleKey = "sb_secret_XLJzv8Cgem6ddD0EEIvrQw_VgjgB1B4";
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 async function run() {
   console.log("Creating a dummy user to test deletion...");
