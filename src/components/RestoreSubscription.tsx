@@ -60,9 +60,9 @@ export default function RestoreSubscription({ compact = false }: RestoreSubscrip
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          text: bugText,
+          description: bugText,
           source: "RestoreSubscription",
-          userId: user?.id
+          user_id: user?.id
         })
       });
       if (res.ok) {

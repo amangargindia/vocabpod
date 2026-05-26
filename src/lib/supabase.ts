@@ -1,11 +1,11 @@
-import { createClient } from "@supabase/supabase-js";
+import { createBrowserClient } from "@supabase/ssr";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 
 // Initialize real Supabase client only if credentials are provided
 export const supabase = supabaseUrl && supabaseAnonKey 
-  ? createClient(supabaseUrl, supabaseAnonKey)
+  ? createBrowserClient(supabaseUrl, supabaseAnonKey)
   : null;
 
 // Mock database type definition matching our schema
@@ -319,19 +319,17 @@ export async function getUserSubscription() {
   const user = await getUser();
   if (!user) return { is_premium: false };
 
-  if (supabase) {
-    try {
-      const { data, error } = await supabase
-        .from("users_subscriptions")
-        .select("is_premium")
-        .eq("user_id", user.id)
-        .order("updated_at", { ascending: false })
-        .limit(1);
-      
-      if (data && data.length > 0) return data[0];
-    } catch (e) {
-      console.warn("Failed to fetch subscription:", e);
+  try {
+    const res = await fetch(`/api/profile?userId=${user.id}`);
+    if (res.ok) {
+      const data = await res.json();
+      return { 
+        is_premium: data.isPremium || false,
+        renews_at: data.renewsAt || null 
+      };
     }
+  } catch (e) {
+    console.warn("Failed to fetch subscription via API:", e);
   }
 
   // Fallback

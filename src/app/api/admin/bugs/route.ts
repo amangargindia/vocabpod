@@ -15,20 +15,30 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { data, error } = await supabase
+    const { data: bugData, error: bugError } = await supabase
       .from("bug_reports")
-      .select(`
-        *,
-        user:auth.users (email)
-      `)
+      .select("*")
       .order("created_at", { ascending: false });
 
-    if (error) {
-      console.error("Error fetching bugs:", error);
+    if (bugError) {
+      console.error("Error fetching bugs:", bugError);
       return NextResponse.json({ error: "Failed to fetch bugs" }, { status: 500 });
     }
 
-    return NextResponse.json({ bugs: data }, { status: 200 });
+    const { data: authData, error: authError } = await supabase.auth.admin.listUsers();
+    const emailMap: Record<string, string> = {};
+    if (!authError && authData?.users) {
+      authData.users.forEach(u => {
+        emailMap[u.id] = u.email || "Unknown";
+      });
+    }
+
+    const mergedBugs = (bugData || []).map(b => ({
+      ...b,
+      user: b.user_id ? { email: emailMap[b.user_id] || "Unknown" } : null
+    }));
+
+    return NextResponse.json({ bugs: mergedBugs }, { status: 200 });
   } catch (err: any) {
     console.error("Admin bugs GET error:", err);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

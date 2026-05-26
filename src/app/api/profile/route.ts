@@ -67,7 +67,19 @@ export async function GET(req: Request) {
     });
   }
 
-  return NextResponse.json({ profile: safeProfile, weeklyXp });
+  // Fetch user subscription info
+  const { data: subData } = await adminSupabase
+    .from("users_subscriptions")
+    .select("is_premium, renews_at")
+    .eq("user_id", requestedUserId)
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const isPremium = subData?.is_premium || false;
+  const renewsAt = subData?.renews_at || null;
+
+  return NextResponse.json({ profile: safeProfile, weeklyXp, isPremium, renewsAt });
 }
 
 export async function POST(req: Request) {
