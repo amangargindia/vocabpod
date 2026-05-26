@@ -45,7 +45,7 @@ export default function ProfilePage() {
   const [phoneStatus, setPhoneStatus] = useState<"idle" | "saving" | "saved">("idle");
   const [nameInput, setNameInput] = useState("");
   const [nameStatus, setNameStatus] = useState<"idle" | "saving" | "saved">("idle");
-  const { isLoaded } = useVocabProgress();
+  const { isLoaded } = useVocabProgress(user?.id, !isLoading);
 
   useEffect(() => {
     async function loadData() {

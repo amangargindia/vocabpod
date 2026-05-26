@@ -8,18 +8,32 @@ import ClientSidebar from "@/components/ClientSidebar";
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
   title: "Vocabpod",
   description: "A minimalistic and modern approach to memory and learning.",
+  openGraph: {
+    title: "Vocabpod",
+    description: "A minimalistic and modern approach to memory and learning.",
+    siteName: "Vocabpod",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Vocabpod",
+    description: "A minimalistic and modern approach to memory and learning.",
+  },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+
   return (
     <html
       lang="en"
@@ -29,7 +43,7 @@ export default function RootLayout({
       <head>
         <meta name="darkreader-lock" />
       </head>
-      <body className={`flex flex-col md:flex-row min-h-full bg-absolute-black text-light-gray ${inter.className}`} suppressHydrationWarning>
+      <body className={`flex flex-col md:flex-row min-h-full bg-absolute-black text-light-gray ${inter.className}`}>
         <AuthProvider>
           <ClientSidebar />
           <div className="flex-1 min-w-0 w-full flex flex-col">

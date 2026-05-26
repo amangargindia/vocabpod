@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, getUser } from "@/lib/supabase";
-import { clearAudioCache } from "@/lib/audioCache";
+import { logger } from "@/lib/logger";
 import { useEffect, useState } from "react";
 
 interface NavItem {
@@ -130,9 +130,24 @@ export default function Sidebar() {
   };
 
   const handleSignOut = async () => {
-    await clearAudioCache();
+    logger.info("User clicked sign out", { category: "AUTH", userId: user?.id });
+    import("@/lib/audioCache").then(mod => mod.clearAudioCache());
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("vocabpod_premium_last_checked");
+      localStorage.removeItem("vocabpod_is_premium");
+      localStorage.removeItem("vocabpod_user");
+      localStorage.removeItem("vocabpod_last_user_id");
+      localStorage.removeItem("vocabpod_feed_cache");
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith("vocabpod_progress_")) {
+          localStorage.removeItem(key);
+          i--;
+        }
+      }
+    }
     await signOut();
-    window.location.href = "/login";
+    window.location.href = "/";
   };
 
   const isActive = (href: string) => {

@@ -32,8 +32,8 @@ export default function Dashboard() {
   const [phoneSaving, setPhoneSaving] = useState(false);
   const [showInfoMenu, setShowInfoMenu] = useState(false);
   const infoMenuRef = useRef<HTMLDivElement>(null);
-  const { stats, isLoaded, getWordProgress } = useVocabProgress();
   const { user, isPremium, isLoadingAuth } = useAuth();
+  const { stats, isLoaded, getWordProgress } = useVocabProgress(user?.id, !isLoadingAuth);
 
   useEffect(() => {
     async function loadData() {
@@ -93,14 +93,14 @@ export default function Dashboard() {
   // New-word cap: count words completed for the FIRST time in IST today
   // Uses first_completed_at (UTC) converted to IST date for accurate comparison
   const newWordsCompletedToday = isLoaded
-    ? stats.progressList.filter(p =>
+    ? Object.values(stats.progressList).filter(p =>
         p.first_completed_at && toISTDateString(p.first_completed_at) === today
       ).length
     : 0;
 
   // Words due for SRS review today — next_review_at (UTC) mapped to IST date
   const srsReviewDueSlugs = new Set(
-    stats.progressList
+    Object.values(stats.progressList)
       .filter(p => p.is_completed && p.next_review_at && toISTDateString(p.next_review_at) <= today)
       .map(p => p.word_slug)
   );
@@ -118,7 +118,7 @@ export default function Dashboard() {
   if (baseFeed.length > 0) {
     // Words already reviewed in IST today (don't re-surface)
     const reviewedTodaySlugs = new Set(
-      stats.progressList
+      Object.values(stats.progressList)
         .filter(p => p.last_reviewed_at && toISTDateString(p.last_reviewed_at) === today)
         .map(p => p.word_slug)
     );

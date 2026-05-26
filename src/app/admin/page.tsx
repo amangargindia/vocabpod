@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { insertWordLesson, getUser, clearLessonsCache } from "@/lib/supabase";
+import { insertWordLesson, getUser } from "@/lib/supabase";
 import Stickman, { STICKMAN_POSES, StickmanPose } from "@/components/Stickman";
 
 export default function AdminPortal() {
@@ -444,7 +444,7 @@ export default function AdminPortal() {
       } as any;
 
       await insertWordLesson(payload);
-      clearLessonsCache();
+
       fetchStorageStats();
       
       setMessage({ text: "Success! Word lesson inserted.", type: "success" });

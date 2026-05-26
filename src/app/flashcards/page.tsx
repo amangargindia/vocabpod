@@ -28,8 +28,8 @@ export default function FlashcardsPage() {
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const { getWordProgress, isLoaded } = useVocabProgress();
-  const { isLoadingAuth } = useAuth();
+  const { user, isLoadingAuth } = useAuth();
+  const { getWordProgress, isLoaded } = useVocabProgress(user?.id, !isLoadingAuth);
 
   useEffect(() => {
     async function load() {

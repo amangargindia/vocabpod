@@ -29,7 +29,7 @@ const DEFAULT_STATS: UserStats = {
   progressList: [],
 };
 
-export function useVocabProgress() {
+export function useVocabProgress(initialUserId?: string | null, isParentLoaded?: boolean) {
   const [stats, setStats] = useState<UserStats>(DEFAULT_STATS);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isAuthLoaded, setIsAuthLoaded] = useState(false);

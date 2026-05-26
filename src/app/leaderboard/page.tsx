@@ -6,39 +6,7 @@ import Logo from "@/components/Logo";
 import { getUser } from "@/lib/supabase";
 import { useVocabProgress } from "@/hooks/useVocabProgress";
 
-// Minimalist Contribution Graph
-function ContributionGraph() {
-  const weeks = 20;
-  const days = 7;
-  const grid = Array.from({ length: weeks }).map(() =>
-    Array.from({ length: days }).map(() => (Math.random() > 0.6 ? Math.floor(Math.random() * 3) + 1 : 0))
-  );
-  return (
-    <div className="w-full space-y-3">
-      <div className="flex items-center justify-between text-[10px] font-bold text-muted-ash uppercase tracking-widest">
-        <span>Review Calendar</span>
-        <span>Last 140 days</span>
-      </div>
-      <div className="bg-card-gray border border-white/5 rounded-3xl p-6 flex items-center justify-center space-x-1.5 overflow-hidden">
-        {grid.map((week, i) => (
-          <div key={i} className="flex flex-col space-y-1.5">
-            {week.map((level, j) => (
-              <div
-                key={j}
-                className={`w-3 h-3 rounded-sm transition-colors ${
-                  level === 0 ? "bg-white/5" :
-                  level === 1 ? "bg-terracotta/40" :
-                  level === 2 ? "bg-terracotta/70" :
-                  "bg-terracotta shadow-[0_0_8px_rgba(224,75,53,0.6)]"
-                }`}
-              />
-            ))}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
+
 
 function XPBar({ current, max }: { current: number; max: number }) {
   const pct = Math.min(100, Math.round((current / max) * 100));
@@ -95,7 +63,7 @@ export default function LeaderboardPage() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [totalXp, setTotalXp] = useState(0);
   const [xpHistory, setXpHistory] = useState<number[]>([0,0,0,0,0,0,0]);
-  const { stats, isLoaded } = useVocabProgress();
+  const { stats, isLoaded } = useVocabProgress(currentUserId, !isStatsLoading);
 
   const currentStreak = isLoaded ? stats.currentStreak : 0;
   const totalWords = isLoaded ? stats.totalWordsLearned : 0;

@@ -7,7 +7,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useVocabProgress } from "@/hooks/useVocabProgress";
 import Overlay from "@/components/Overlay";
 import { getCachedAudio } from "@/lib/audioCache";
-import Stickman, { StickmanPose } from "@/components/Stickman";
+import { type StickmanPose } from "@/components/Stickman";
+import dynamic from "next/dynamic";
+const Stickman = dynamic(() => import("@/components/Stickman"), { ssr: false });
 import Logo from "@/components/Logo";
 import Footer from "@/components/Footer";
 
@@ -97,7 +99,7 @@ export default function LessonPage({ params }: { params: Promise<{ slug: string 
   const [isFirstCompletion, setIsFirstCompletion] = useState(false);
   const [quizPassed, setQuizPassed] = useState<boolean | null>(null);
 
-  const { markWordCompleted, syncWordSRS } = useVocabProgress();
+  const { markWordCompleted, syncWordSRS } = useVocabProgress(user?.id, !isLoadingAuth);
 
   // Fetch word lesson from DB/mock on mount
   useEffect(() => {

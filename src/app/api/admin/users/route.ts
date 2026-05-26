@@ -89,6 +89,15 @@ export async function DELETE(req: Request) {
     // 2. Manually delete subscription records
     await adminSupabase.from("users_subscriptions").delete().eq("user_id", userId);
 
+    // 3. Manually delete profile records
+    await adminSupabase.from("user_profiles").delete().eq("user_id", userId);
+
+    // 2.5. Manually delete profile records
+    await adminSupabase.from("user_profiles").delete().eq("user_id", userId);
+
+    // 2.5. Manually delete profile records
+    await adminSupabase.from("user_profiles").delete().eq("user_id", userId);
+
     // 3. Finally delete the user from Auth
     const { error } = await adminSupabase.auth.admin.deleteUser(userId);
     if (error) {
