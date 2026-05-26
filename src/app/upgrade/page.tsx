@@ -39,20 +39,18 @@ export default function UpgradePage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
 
-      const options = {
+      const options: any = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount: data.amount,
-        currency: data.currency,
         name: "VocabPod",
-        description: "Premium Upgrade",
-        order_id: data.id,
+        description: "Monthly Premium Subscription",
+        subscription_id: data.id,
         handler: async function (response: any) {
           try {
             const verifyRes = await fetch("/api/checkout/verify", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
-                razorpay_order_id: response.razorpay_order_id,
+                razorpay_subscription_id: response.razorpay_subscription_id,
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
                 userId: user?.id || "mock-user-id"
