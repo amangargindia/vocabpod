@@ -5,6 +5,7 @@ import { getCachedAudio, prefetchAudio } from "@/lib/audioCache";
 import { useAuth } from "@/contexts/AuthContext";
 import Overlay from "@/components/Overlay";
 import Link from "next/link";
+import Logo from "@/components/Logo";
 
 interface AutoplayWord {
   id: string;
@@ -271,9 +272,14 @@ const playDing = () => {
       `}</style>
 <div className="flex-1 min-w-0 flex flex-col">
         <header className="sticky top-0 z-30 backdrop-blur-md bg-absolute-black/80 border-b border-white/5 px-6 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-sm font-bold uppercase tracking-widest text-muted-ash">Autoplay</h1>
-            <p className="text-[10px] text-muted-ash/60 mt-0.5">For busy times when you still want to learn</p>
+          <div className="flex items-center gap-4">
+            <Link href="/">
+              <Logo className="w-24 md:w-32 h-8 md:h-10" />
+            </Link>
+            <div>
+              <h1 className="text-sm font-bold uppercase tracking-widest text-muted-ash">Autoplay</h1>
+              <p className="text-[10px] text-muted-ash/60 mt-0.5">For busy times when you still want to learn</p>
+            </div>
           </div>
           <span className="text-xs text-muted-ash font-bold">{words.length} words queued</span>
         </header>

@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useVocabProgress } from "@/hooks/useVocabProgress";
 import { useAuth } from "@/contexts/AuthContext";
+import Logo from "@/components/Logo";
+import Link from "next/link";
 
 interface Flashcard {
   word: string;
@@ -56,8 +58,12 @@ export default function FlashcardsPage() {
     <div className="flex min-h-screen bg-absolute-black text-light-gray font-sans">
 <div className="flex-1 min-w-0">
         <header className="sticky top-0 z-30 backdrop-blur-md bg-absolute-black/80 border-b border-white/5 px-6 py-4 flex items-center justify-between">
-          {/* Left — spacer to balance the right counter */}
-          <div className="flex-1" />
+          {/* Left — Logo */}
+          <div className="flex-1">
+            <Link href="/">
+              <Logo className="w-24 md:w-32 h-8 md:h-10" />
+            </Link>
+          </div>
 
           {/* Center — Title + subtitle */}
           <div className="flex-1 flex flex-col items-center justify-center">

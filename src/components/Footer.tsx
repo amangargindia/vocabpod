@@ -13,6 +13,9 @@ export default function Footer() {
         <Link href="/contact" className="hover:text-terracotta transition-colors">
           Contact Us
         </Link>
+        <Link href="/privacy" className="hover:text-terracotta transition-colors">
+          Privacy Policy
+        </Link>
         <BugReportModal />
       </div>
       <p className="text-[10px] text-muted-ash/50 uppercase tracking-widest">

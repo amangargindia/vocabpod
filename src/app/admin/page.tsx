@@ -577,7 +577,8 @@ export default function AdminPortal() {
               <div className="text-muted-ash animate-pulse">Loading users...</div>
             ) : (
               <div className="bg-card-gray border border-white/5 rounded-3xl overflow-hidden shadow-xl">
-                <table className="w-full text-left text-sm">
+                <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm min-w-[700px]">
                   <thead className="bg-white/5 text-muted-ash font-bold uppercase tracking-wider text-xs">
                     <tr>
                       <th className="px-6 py-4">Email</th>
@@ -628,6 +629,7 @@ export default function AdminPortal() {
                     ))}
                   </tbody>
                 </table>
+                </div>
               </div>
             )}
           </div>

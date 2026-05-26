@@ -276,12 +276,17 @@ export default function LessonPage({ params }: { params: Promise<{ slug: string 
 
       <div className="flex-1 min-w-0 relative z-10 pb-[70px] md:pb-0">
         {/* Sticky Section Navbar */}
-        <nav className="sticky top-0 z-40 bg-absolute-black/95 backdrop-blur-md border-b border-white/5 px-4 py-2.5 md:px-8 flex items-center justify-center gap-1.5 overflow-x-auto custom-scrollbar shadow-lg">
-          <a href="#word"    className="px-3 py-1.5 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest bg-terracotta/10 border border-terracotta/25 text-terracotta hover:bg-terracotta/20 transition-all shrink-0">Word</a>
+        <nav className="sticky top-0 z-40 bg-absolute-black/95 backdrop-blur-md border-b border-white/5 px-4 py-2.5 md:px-8 flex items-center justify-between shadow-lg">
+          <Link href="/" className="shrink-0 mr-4">
+            <Logo className="w-24 md:w-32 h-8 md:h-10" />
+          </Link>
+          <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar flex-1 justify-center">
+            <a href="#word"    className="px-3 py-1.5 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest bg-terracotta/10 border border-terracotta/25 text-terracotta hover:bg-terracotta/20 transition-all shrink-0">Word</a>
           <a href="#mnemonic" className="px-3 py-1.5 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest bg-white/5 border border-white/10 text-muted-ash hover:bg-terracotta/10 hover:text-terracotta hover:border-terracotta/25 transition-all shrink-0">Mnemonic</a>
           <a href="#story"   className="px-3 py-1.5 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest bg-white/5 border border-white/10 text-muted-ash hover:bg-terracotta/10 hover:text-terracotta hover:border-terracotta/25 transition-all shrink-0">Story</a>
           <a href="#usage"   className="px-3 py-1.5 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest bg-white/5 border border-white/10 text-muted-ash hover:bg-terracotta/10 hover:text-terracotta hover:border-terracotta/25 transition-all shrink-0">Usage</a>
           <a href="#quiz"    className="px-3 py-1.5 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest bg-white/5 border border-white/10 text-muted-ash hover:bg-terracotta/10 hover:text-terracotta hover:border-terracotta/25 transition-all shrink-0">Quiz</a>
+          </div>
         </nav>
 
         {/* Main Content Area */}
@@ -407,11 +412,16 @@ export default function LessonPage({ params }: { params: Promise<{ slug: string 
                   </div>
                 )}
                 <p className="flex-1 text-base md:text-lg leading-relaxed md:leading-loose text-muted-ash">
-                  {(lesson as any).story ? (lesson as any).story.split(new RegExp(`(${lesson.word})`, "gi")).map((part: string, i: number) =>
-                    part.toLowerCase() === lesson.word.toLowerCase()
-                      ? <mark key={i} className="bg-transparent text-terracotta font-bold not-italic">{part}</mark>
-                      : part
-                  ) : "No story provided."}
+                  {(lesson as any).story ? (lesson as any).story.split(/(\*\*.*?\*\*)/g).map((part: string, index: number) => {
+                    if (part.startsWith('**') && part.endsWith('**')) {
+                      return <strong key={index} className="font-bold text-light-gray">{part.slice(2, -2)}</strong>;
+                    }
+                    return part.split(new RegExp(`(${lesson.word})`, "gi")).map((subPart: string, subIndex: number) =>
+                      subPart.toLowerCase() === lesson.word.toLowerCase()
+                        ? <mark key={`${index}-${subIndex}`} className="bg-transparent text-terracotta font-bold not-italic">{subPart}</mark>
+                        : subPart
+                    );
+                  }) : "No story provided."}
                 </p>
               </div>
             </section>
