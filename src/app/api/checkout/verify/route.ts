@@ -60,6 +60,7 @@ export async function POST(req: Request) {
             razorpay_customer_id: razorpay_payment_id,
             razorpay_order_id: razorpay_order_id,
             is_premium: true,
+            renews_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
             updated_at: new Date().toISOString()
           });
 

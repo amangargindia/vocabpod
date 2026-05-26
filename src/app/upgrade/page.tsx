@@ -108,9 +108,9 @@ export default function UpgradePage() {
         </p>
 
         <div className="bg-deep-canvas border border-terracotta/30 rounded-2xl p-6 mb-8 relative z-10 flex flex-col items-center">
-          <span className="text-xs font-bold uppercase tracking-widest text-muted-ash mb-2">Lifetime Access</span>
+          <span className="text-xs font-bold uppercase tracking-widest text-muted-ash mb-2">Premium Subscription</span>
           <span className="text-5xl font-black text-light-gray mb-1">₹99</span>
-          <span className="text-sm font-semibold text-terracotta">One-time payment</span>
+          <span className="text-sm font-semibold text-terracotta">Per month</span>
         </div>
 
         <button 

@@ -190,7 +190,7 @@ const PROMISES = [
   { label: "50+ words", sub: "per month" },
   { label: "2 minutes", sub: "per day" },
   { label: "Active recall", sub: "not passive reading" },
-  { label: "Lifetime access", sub: "pay once" },
+  { label: "Premium access", sub: "₹99/month subscription" },
 ];
 
 export default function FeaturesPage() {

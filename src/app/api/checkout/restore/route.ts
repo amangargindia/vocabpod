@@ -51,6 +51,7 @@ export async function POST(req: Request) {
       await adminSupabase.from("users_subscriptions").insert({
         user_id: authUserId,
         is_premium: true,
+        renews_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
         updated_at: new Date().toISOString()
       });
       return NextResponse.json({ success: true, is_premium: true });
