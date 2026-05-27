@@ -1,13 +1,28 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest, type NextFetchEvent } from "next/server";
 
-// Simple in-memory rate limit map
+// Simple in-memory rate limit maps
 // Note: In a serverless environment like Vercel, this is per-isolate.
 // For true global rate limiting, a service like Upstash Redis is recommended.
-const ipRequestMap = new Map<string, { count: number, timestamp: number }>();
+const generalLimitMap = new Map<string, { count: number, timestamp: number }>();
+const sensitiveLimitMap = new Map<string, { count: number, timestamp: number }>();
 
-const RATE_LIMIT_MAX_REQUESTS = 100;
-const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
+const LIMITS = {
+  GENERAL: { max: 100, window: 60 * 1000 },   // 100 req/min for reads
+  SENSITIVE: { max: 10, window: 60 * 1000 },  // 10 req/min for checkout, logs, bugs, profile, progress
+};
+
+function isSensitiveRoute(pathname: string): boolean {
+  return (
+    pathname.startsWith('/api/checkout/') ||
+    pathname.startsWith('/api/bugs') ||
+    pathname.startsWith('/api/logs') ||
+    pathname.startsWith('/api/upload') ||
+    pathname.startsWith('/api/profile') ||
+    pathname.startsWith('/api/progress') ||
+    pathname.startsWith('/api/admin/')
+  );
+}
 
 export async function proxy(request: NextRequest, event: NextFetchEvent) {
   // Only apply rate limiting to API routes to avoid blocking static assets
@@ -16,25 +31,36 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
     
     if (ip !== 'unknown') {
       const now = Date.now();
-      const ipData = ipRequestMap.get(ip);
+      const pathname = request.nextUrl.pathname;
+      const isSensitive = isSensitiveRoute(pathname);
       
-      if (!ipData || now - ipData.timestamp > RATE_LIMIT_WINDOW_MS) {
-        ipRequestMap.set(ip, { count: 1, timestamp: now });
+      const limitConfig = isSensitive ? LIMITS.SENSITIVE : LIMITS.GENERAL;
+      const rateLimitMap = isSensitive ? sensitiveLimitMap : generalLimitMap;
+      
+      const ipData = rateLimitMap.get(ip);
+      
+      if (!ipData || now - ipData.timestamp > limitConfig.window) {
+        rateLimitMap.set(ip, { count: 1, timestamp: now });
       } else {
-        if (ipData.count >= RATE_LIMIT_MAX_REQUESTS) {
+        if (ipData.count >= limitConfig.max) {
           return new NextResponse(
-            JSON.stringify({ error: 'Too Many Requests', message: 'Rate limit exceeded' }),
+            JSON.stringify({ 
+              error: 'Too Many Requests', 
+              message: isSensitive 
+                ? 'Rate limit exceeded for sensitive actions. Please try again in a minute.' 
+                : 'Rate limit exceeded.' 
+            }),
             { 
               status: 429,
               headers: {
                 'Content-Type': 'application/json',
-                'Retry-After': Math.ceil((RATE_LIMIT_WINDOW_MS - (now - ipData.timestamp)) / 1000).toString()
+                'Retry-After': Math.ceil((limitConfig.window - (now - ipData.timestamp)) / 1000).toString()
               }
             }
           );
         }
         ipData.count++;
-        ipRequestMap.set(ip, ipData);
+        rateLimitMap.set(ip, ipData);
       }
     }
   }

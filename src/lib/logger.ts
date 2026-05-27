@@ -158,7 +158,9 @@ class Logger {
     if (serverSupabaseClient) return serverSupabaseClient;
     const { createClient } = await import("@supabase/supabase-js");
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const supabaseKey = isServer 
+      ? (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+      : process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     if (!supabaseUrl || !supabaseKey) throw new Error("Supabase credentials missing for logger.");
     serverSupabaseClient = createClient(supabaseUrl, supabaseKey);
     return serverSupabaseClient;
