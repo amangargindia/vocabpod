@@ -147,7 +147,7 @@ const playDing = () => {
   const current = words[index];
 
   const content = (
-    <div className="flex-1 flex flex-col items-center justify-center px-4 py-8 md:px-6 md:py-12 overflow-x-hidden min-h-[calc(100vh-180px)]">
+    <div className="flex-1 flex flex-col items-center justify-center px-4 py-4 md:py-8 overflow-x-hidden overflow-y-auto min-h-0">
       <audio ref={audioRef} src={audioSrc || undefined} preload="auto" autoPlay />
 
       {isLoading ? (
@@ -161,23 +161,23 @@ const playDing = () => {
           <p className="text-sm text-muted-ash">Add Level 1 or 2 words with audio in the admin portal.</p>
         </div>
       ) : current ? (
-        <div className={`w-full max-w-sm space-y-10 text-center transition-all duration-700 ease-in-out transform ${isTransitioning ? 'opacity-0 scale-95 translate-x-10' : 'opacity-100 scale-100 translate-x-0'}`}>
+        <div className={`autoplay-card w-full max-w-sm space-y-4 md:space-y-8 text-center transition-all duration-700 ease-in-out transform ${isTransitioning ? 'opacity-0 scale-95 translate-x-10' : 'opacity-100 scale-100 translate-x-0'}`}>
           {/* Word display */}
           <div className="space-y-2">
             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-terracotta border border-terracotta/30 bg-dark-blush px-3 py-1 rounded-full">
               {index + 1} / {words.length}
             </span>
-            <h1 className="text-6xl font-black tracking-tight text-light-gray uppercase mt-4">
+            <h1 className="text-4xl md:text-6xl font-black tracking-tight text-light-gray uppercase mt-2 md:mt-4">
               {current.word}
             </h1>
-            <p className="text-lg text-muted-ash leading-relaxed">{current.definition}</p>
+            <p className="text-sm md:text-base text-muted-ash leading-relaxed">{current.definition}</p>
           </div>
 
           {/* Mnemonic */}
           {current.narrative && (
-            <div className="bg-card-gray border border-white/5 rounded-2xl p-5 text-left">
-              <p className="text-xs font-black uppercase tracking-widest text-terracotta mb-2">Mnemonic</p>
-              <p className="text-sm text-muted-ash leading-relaxed">{current.narrative}</p>
+            <div className="bg-card-gray border border-white/5 rounded-2xl p-3.5 md:p-5 text-left">
+              <p className="text-xs font-black uppercase tracking-widest text-terracotta mb-1.5">Mnemonic</p>
+              <p className="text-xs md:text-sm text-muted-ash leading-relaxed">{current.narrative}</p>
             </div>
           )}
 
@@ -263,15 +263,39 @@ const playDing = () => {
   );
 
   return (
-    <div className="flex min-h-screen bg-absolute-black text-light-gray font-sans">
+    <div className="h-[calc(100dvh-70px)] md:h-dvh overflow-hidden flex bg-absolute-black text-light-gray font-sans">
       <style>{`
         @keyframes waveBar {
           0% { transform: scaleY(0.4); }
           100% { transform: scaleY(1.2); }
         }
+        @media (max-height: 740px) {
+          .autoplay-card {
+            transform: scale(0.9);
+            transform-origin: center center;
+            margin-top: -10px;
+            margin-bottom: -10px;
+          }
+        }
+        @media (max-height: 660px) {
+          .autoplay-card {
+            transform: scale(0.82);
+            transform-origin: center center;
+            margin-top: -25px;
+            margin-bottom: -25px;
+          }
+        }
+        @media (max-height: 580px) {
+          .autoplay-card {
+            transform: scale(0.72);
+            transform-origin: center center;
+            margin-top: -40px;
+            margin-bottom: -40px;
+          }
+        }
       `}</style>
-<div className="flex-1 min-w-0 flex flex-col">
-        <header className="sticky top-0 z-30 backdrop-blur-md bg-absolute-black/80 border-b border-white/5 px-6 py-4 flex items-center justify-between">
+      <div className="flex-1 min-w-0 flex flex-col h-full overflow-hidden">
+        <header className="sticky top-0 z-30 backdrop-blur-md bg-absolute-black/80 border-b border-white/5 px-6 py-4 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-4">
             <Link href="/">
               <Logo className="w-24 md:w-32 h-8 md:h-10" />
@@ -284,9 +308,11 @@ const playDing = () => {
           <span className="text-xs text-muted-ash font-bold">{words.length} words queued</span>
         </header>
 
-        <Overlay isLocked={!isPremium}>
-          {content}
-        </Overlay>
+        <div className="flex-1 min-h-0 flex flex-col">
+          <Overlay isLocked={!isPremium}>
+            {content}
+          </Overlay>
+        </div>
       </div>
     </div>
   );
