@@ -38,7 +38,7 @@ export default function BugReportModal({ userId }: BugReportModalProps) {
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-[200] bg-absolute-black/90 backdrop-blur-md flex justify-center items-center p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-[200] bg-absolute-black/90 backdrop-blur-md flex justify-center items-start px-4 py-8 overflow-y-auto">
           <div className="bg-card-gray border border-white/10 rounded-3xl p-6 md:p-8 max-w-sm w-full relative shadow-2xl space-y-5 my-auto">
             <button
               onClick={() => setOpen(false)}
@@ -55,7 +55,7 @@ export default function BugReportModal({ userId }: BugReportModalProps) {
                 value={text}
                 onChange={e => setText(e.target.value)}
                 placeholder="What happened?"
-                rows={4}
+                rows={3}
                 className="w-full bg-deep-canvas border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-terracotta/50 text-light-gray placeholder:text-muted-ash/40 resize-none"
               />
               <button
