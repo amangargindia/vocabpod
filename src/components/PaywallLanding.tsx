@@ -95,7 +95,7 @@ export default function PaywallLanding() {
 
   return (
     <div className="min-h-screen bg-absolute-black flex flex-col items-center justify-center p-6 text-light-gray font-sans selection:bg-terracotta/20 selection:text-terracotta">
-      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="afterInteractive" />
 
       {/* Header with Login Button */}
       <div className="absolute top-6 right-6 z-20">

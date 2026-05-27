@@ -169,7 +169,7 @@ export default function Dashboard() {
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-absolute-black text-light-gray font-sans selection:bg-terracotta/20 selection:text-terracotta">
-      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="afterInteractive" />
 <div className="flex-1 flex flex-col min-w-0 pb-[70px] md:pb-0">
         {/* Top bar */}
         <header className="sticky top-0 z-30 backdrop-blur-md bg-absolute-black/80 border-b border-white/5 px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
