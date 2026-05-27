@@ -101,8 +101,38 @@ export default function LessonPage({ params }: { params: any }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFirstCompletion, setIsFirstCompletion] = useState(false);
   const [quizPassed, setQuizPassed] = useState<boolean | null>(null);
+  const [activeSection, setActiveSection] = useState<string>("word");
 
   const { markWordCompleted, syncWordSRS } = useVocabProgress(user?.id, !isLoadingAuth);
+
+  // Scroll spy active section observer
+  useEffect(() => {
+    if (!lesson) return;
+
+    const sections = ["word", "mnemonic", "story", "usage", "quiz"];
+    const observerOptions = {
+      root: null,
+      rootMargin: "-30% 0px -50% 0px",
+      threshold: 0,
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          setActiveSection(entry.target.id);
+        }
+      });
+    }, observerOptions);
+
+    sections.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [lesson]);
 
   // Fetch word lesson from DB/mock on mount
   useEffect(() => {
@@ -284,11 +314,29 @@ export default function LessonPage({ params }: { params: any }) {
             <Logo className="w-24 md:w-32 h-8 md:h-10" />
           </Link>
           <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar flex-1 justify-center">
-            <a href="#word"    className="px-3 py-1.5 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest bg-terracotta/10 border border-terracotta/25 text-terracotta hover:bg-terracotta/20 transition-all shrink-0">Word</a>
-          <a href="#mnemonic" className="px-3 py-1.5 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest bg-white/5 border border-white/10 text-muted-ash hover:bg-terracotta/10 hover:text-terracotta hover:border-terracotta/25 transition-all shrink-0">Mnemonic</a>
-          <a href="#story"   className="px-3 py-1.5 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest bg-white/5 border border-white/10 text-muted-ash hover:bg-terracotta/10 hover:text-terracotta hover:border-terracotta/25 transition-all shrink-0">Story</a>
-          <a href="#usage"   className="px-3 py-1.5 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest bg-white/5 border border-white/10 text-muted-ash hover:bg-terracotta/10 hover:text-terracotta hover:border-terracotta/25 transition-all shrink-0">Usage</a>
-          <a href="#quiz"    className="px-3 py-1.5 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest bg-white/5 border border-white/10 text-muted-ash hover:bg-terracotta/10 hover:text-terracotta hover:border-terracotta/25 transition-all shrink-0">Quiz</a>
+            {[
+              { id: "word", label: "Word" },
+              { id: "mnemonic", label: "Mnemonic" },
+              { id: "story", label: "Story" },
+              { id: "usage", label: "Usage" },
+              { id: "quiz", label: "Quiz" }
+            ].map((tab) => {
+              const isActive = activeSection === tab.id;
+              return (
+                <a
+                  key={tab.id}
+                  href={`#${tab.id}`}
+                  onClick={() => setActiveSection(tab.id)}
+                  className={`px-3 py-1.5 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest transition-all shrink-0 ${
+                    isActive
+                      ? "bg-terracotta/10 border border-terracotta/25 text-terracotta hover:bg-terracotta/20"
+                      : "bg-white/5 border border-white/10 text-muted-ash hover:bg-terracotta/10 hover:text-terracotta hover:border-terracotta/25"
+                  }`}
+                >
+                  {tab.label}
+                </a>
+              );
+            })}
           </div>
         </nav>
 
