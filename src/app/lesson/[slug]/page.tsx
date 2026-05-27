@@ -309,11 +309,11 @@ export default function LessonPage({ params }: { params: any }) {
 
       <div className="flex-1 min-w-0 relative z-10 pb-[70px] md:pb-0">
         {/* Sticky Section Navbar */}
-        <nav className="sticky top-0 z-40 bg-absolute-black/95 backdrop-blur-md border-b border-white/5 px-4 py-2.5 md:px-8 flex items-center justify-between shadow-lg">
-          <Link href="/" className="shrink-0 mr-4">
-            <Logo className="w-24 md:w-32 h-8 md:h-10" />
+        <nav className="sticky top-0 z-40 bg-absolute-black/95 backdrop-blur-md border-b border-white/5 px-4 py-3 md:px-8 flex flex-col md:flex-row items-center justify-between gap-2.5 md:gap-4 shadow-lg">
+          <Link href="/" className="shrink-0">
+            <Logo className="w-28 md:w-32 h-8 md:h-10" />
           </Link>
-          <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar flex-1 justify-center">
+          <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar w-full md:w-auto justify-center py-0.5">
             {[
               { id: "word", label: "Word" },
               { id: "mnemonic", label: "Mnemonic" },
