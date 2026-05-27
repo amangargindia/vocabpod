@@ -32,7 +32,7 @@ export default function BugReportModal({ userId }: BugReportModalProps) {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-muted-ash hover:text-terracotta transition-colors"
+        className="text-xs md:text-sm font-bold uppercase tracking-widest text-muted-ash hover:text-terracotta transition-colors hover:cursor-pointer whitespace-nowrap"
       >
         Report Bug
       </button>
