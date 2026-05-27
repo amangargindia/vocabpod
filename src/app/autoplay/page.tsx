@@ -29,6 +29,16 @@ export default function AutoplayPage() {
 
   const [isTransitioning, setIsTransitioning] = useState(false);
 
+  // Robust Fisher-Yates shuffle
+  const shuffleWords = (array: AutoplayWord[]) => {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  };
+
   useEffect(() => {
     async function load() {
       const res = await fetch("/api/words");
@@ -37,7 +47,7 @@ export default function AutoplayPage() {
       const eligible = (data.words || [])
         .filter((w: any) => w.audio_url && (w.level ?? 1) <= 2);
       // Shuffle
-      const shuffled = eligible.sort(() => Math.random() - 0.5);
+      const shuffled = shuffleWords(eligible);
       setWords(shuffled);
       setIsLoading(false);
     }

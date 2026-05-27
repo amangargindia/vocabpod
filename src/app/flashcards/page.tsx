@@ -33,6 +33,16 @@ export default function FlashcardsPage() {
   const { user, isLoadingAuth } = useAuth();
   const { getWordProgress, isLoaded } = useVocabProgress(user?.id, !isLoadingAuth);
 
+  // Robust Fisher-Yates shuffle
+  const shuffleCards = (array: Flashcard[]) => {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  };
+
   useEffect(() => {
     async function load() {
       const res = await fetch("/api/words");
@@ -40,7 +50,8 @@ export default function FlashcardsPage() {
       // Only show completed words in flashcard review
       const learned = (data.words || []).filter((w: any) => getWordProgress(w.word)?.is_completed);
       // Randomize flashcards
-      setCards(learned.sort(() => Math.random() - 0.5));
+      const shuffled = shuffleCards(learned);
+      setCards(shuffled);
       setIsLoading(false);
     }
     if (!isLoadingAuth && isLoaded) {
