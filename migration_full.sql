@@ -118,7 +118,8 @@ SET total_words_learned = (
 )
 WHERE up.total_words_learned = 0;
 
--- 7. Fix renews_at column in users_subscriptions (in case column was missing)
+-- 7. Fix renews_at and razorpay_subscription_id columns in users_subscriptions (in case columns were missing)
 ALTER TABLE public.users_subscriptions ADD COLUMN IF NOT EXISTS renews_at timestamptz;
+ALTER TABLE public.users_subscriptions ADD COLUMN IF NOT EXISTS razorpay_subscription_id text;
 
 SELECT 'Full schema migration complete.' as status;
