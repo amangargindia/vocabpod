@@ -305,7 +305,21 @@ const playDing = () => {
               <p className="text-[10px] text-muted-ash/60 mt-0.5">For busy times when you still want to learn</p>
             </div>
           </div>
-          <span className="text-xs text-muted-ash font-bold">{words.length} words queued</span>
+          <div className="relative group shrink-0" title={`${words.length} words queued`}>
+            <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-white/5 border border-white/10 text-muted-ash group-hover:text-light-gray group-hover:bg-white/10 transition-all duration-200">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                <line x1="9" y1="18" x2="20" y2="18" />
+                <line x1="9" y1="12" x2="20" y2="12" />
+                <line x1="9" y1="6" x2="20" y2="6" />
+                <circle cx="4" cy="6" r="1" fill="currentColor" />
+                <circle cx="4" cy="12" r="1" fill="currentColor" />
+                <circle cx="4" cy="18" r="1" fill="currentColor" />
+              </svg>
+            </div>
+            <span className="absolute -top-1.5 -right-1.5 flex h-4.5 min-w-[18px] px-1 items-center justify-center rounded-full bg-terracotta text-[8px] font-black text-light-gray border border-absolute-black shadow-[0_0_8px_rgba(224,75,53,0.5)]">
+              {words.length}
+            </span>
+          </div>
         </header>
 
         <div className="flex-1 min-h-0 flex flex-col">
