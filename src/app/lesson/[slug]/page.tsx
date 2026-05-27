@@ -309,11 +309,11 @@ export default function LessonPage({ params }: { params: any }) {
 
       <div className="flex-1 min-w-0 relative z-10 pb-[70px] md:pb-0">
         {/* Sticky Section Navbar */}
-        <nav className="sticky top-0 z-40 bg-absolute-black/95 backdrop-blur-md border-b border-white/5 px-4 py-3 md:px-8 flex flex-col md:flex-row items-center justify-between gap-2.5 md:gap-4 shadow-lg">
-          <Link href="/" className="shrink-0">
+        <nav className="sticky top-0 z-40 bg-absolute-black/95 backdrop-blur-md border-b border-white/5 px-0 py-3 md:px-8 flex flex-col md:flex-row items-center justify-between gap-2.5 md:gap-4 shadow-lg">
+          <Link href="/" className="shrink-0 px-4 md:px-0">
             <Logo className="w-28 md:w-32 h-8 md:h-10" />
           </Link>
-          <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar w-full md:w-auto justify-center py-0.5">
+          <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar w-full md:w-auto justify-start md:justify-center px-4 md:px-0 py-1">
             {[
               { id: "word", label: "Word" },
               { id: "mnemonic", label: "Mnemonic" },
@@ -449,7 +449,7 @@ export default function LessonPage({ params }: { params: any }) {
 
           {/* 3. Story Section with Stickman */}
           <Overlay isLocked={!isPremium} wordSlug={wordSlug} lockedText="Story Reinforcement">
-            <section id="story" className="bg-card-gray border border-white/5 p-6 md:p-10 rounded-3xl shadow-2xl space-y-6 scroll-mt-24">
+            <section id="story" className="bg-card-gray border border-white/5 rounded-3xl p-6 md:p-10 shadow-2xl flex flex-col space-y-6 scroll-mt-24">
               <div className="flex items-center space-x-3 border-b border-white/5 pb-3">
                 <svg viewBox="0 0 24 24" fill="none" stroke="#E04B35" strokeWidth="1.8" strokeLinecap="round" className="w-5 h-5 shrink-0">
                   <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
@@ -480,7 +480,7 @@ export default function LessonPage({ params }: { params: any }) {
 
           {/* 4. Real Life Usage Section */}
           <Overlay isLocked={!isPremium} wordSlug={wordSlug} lockedText="Real Life Usage">
-            <section id="usage" className="bg-card-gray border border-white/5 p-6 md:p-10 rounded-3xl shadow-2xl space-y-6 scroll-mt-24">
+            <section id="usage" className="bg-card-gray border border-white/5 rounded-3xl p-6 md:p-10 shadow-2xl flex flex-col space-y-6 scroll-mt-24">
               <div className="flex items-center space-x-3 border-b border-white/5 pb-3">
                 <svg viewBox="0 0 24 24" fill="none" stroke="#E04B35" strokeWidth="1.8" strokeLinecap="round" className="w-5 h-5 shrink-0">
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10Z" />
