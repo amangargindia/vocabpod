@@ -38,11 +38,11 @@ export default function BugReportModal({ userId }: BugReportModalProps) {
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-[200] bg-absolute-black/90 backdrop-blur-md flex items-center justify-center p-6">
-          <div className="bg-card-gray border border-white/10 rounded-3xl p-8 max-w-sm w-full relative shadow-2xl space-y-6">
+        <div className="fixed inset-0 z-[200] bg-absolute-black/90 backdrop-blur-md flex justify-center items-center p-4 overflow-y-auto">
+          <div className="bg-card-gray border border-white/10 rounded-3xl p-6 md:p-8 max-w-sm w-full relative shadow-2xl space-y-5 my-auto">
             <button
               onClick={() => setOpen(false)}
-              className="absolute top-4 right-4 text-muted-ash hover:text-light-gray font-bold text-lg"
+              className="absolute top-4 right-4 text-muted-ash hover:text-light-gray font-bold text-lg hover:cursor-pointer"
             >
               ✕
             </button>
@@ -61,7 +61,7 @@ export default function BugReportModal({ userId }: BugReportModalProps) {
               <button
                 onClick={submit}
                 disabled={status === "saving" || !text.trim()}
-                className="w-full bg-terracotta text-light-gray font-bold py-3.5 rounded-xl hover:shadow-[0_0_20px_rgba(224,75,53,0.4)] transition-all uppercase tracking-wider text-sm disabled:opacity-50"
+                className="w-full bg-terracotta text-light-gray font-bold py-3.5 rounded-xl hover:shadow-[0_0_20px_rgba(224,75,53,0.4)] transition-all uppercase tracking-wider text-sm disabled:opacity-50 hover:cursor-pointer"
               >
                 {status === "saving" ? "Submitting…" : status === "saved" ? "Submitted! ✓" : "Submit Bug"}
               </button>
