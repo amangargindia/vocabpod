@@ -68,26 +68,32 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
   const pathname = request.nextUrl.pathname;
   const isPublicRoute = 
     pathname === '/' || 
+    pathname === '/login' ||
     pathname === '/signin' || 
     pathname === '/about' || 
     pathname === '/privacy' || 
     pathname === '/contact' || 
     pathname === '/features' || 
+    pathname === '/upgrade' ||
+    pathname === '/upgrade/success' ||
+    pathname === '/journey' ||
+    pathname === '/leaderboard' ||
     pathname.startsWith('/api/');
 
   let user = null;
-  if (isPublicRoute) {
-    const { data } = await supabase.auth.getSession();
-    user = data.session?.user;
-  } else {
-    const { data } = await supabase.auth.getUser();
-    user = data.user;
-  }
-
-  if (pathname === '/login') {
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = '/';
-    return NextResponse.redirect(redirectUrl);
+  try {
+    if (isPublicRoute) {
+      const { data } = await supabase.auth.getSession();
+      user = data.session?.user;
+    } else {
+      const { data } = await supabase.auth.getUser();
+      user = data.user;
+    }
+  } catch (e) {
+    // If auth check fails (cookie issue, network error), allow the request through.
+    // Client-side auth (AuthContext) will handle access control gracefully.
+    console.warn("Proxy auth check failed, allowing request through:", e);
+    return supabaseResponse;
   }
 
   if (!user && !isPublicRoute) {

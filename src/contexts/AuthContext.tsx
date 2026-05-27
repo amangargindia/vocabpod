@@ -39,7 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    // Unregister any stale service workers to clear broken Chrome caches
+    // Unregister any stale service workers and clear Cache Storage to fix Chrome navigation
     if (typeof window !== "undefined" && "serviceWorker" in navigator) {
       navigator.serviceWorker.getRegistrations().then((registrations) => {
         for (const registration of registrations) {
@@ -49,6 +49,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }).catch(err => {
         console.warn("Failed to unregister service worker:", err);
       });
+
+      // Also clear all Cache Storage entries to prevent stale cached responses
+      if ("caches" in window) {
+        caches.keys().then((cacheNames) => {
+          for (const cacheName of cacheNames) {
+            caches.delete(cacheName);
+            console.log("Cleared cache:", cacheName);
+          }
+        }).catch(err => {
+          console.warn("Failed to clear caches:", err);
+        });
+      }
     }
 
     loadAuth();
