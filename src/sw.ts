@@ -17,7 +17,6 @@ const serwist = new Serwist({
   clientsClaim: true,
   navigationPreload: true,
   runtimeCaching: [
-    ...defaultCache,
     {
       // Audio Cache Strategy: Max 20 files to save space
       matcher: /^https:\/\/pub-4c8c5569f34b4ca39b63527fb351a229\.r2\.dev\/.*\.mp3$/,

@@ -39,6 +39,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    // Unregister any stale service workers to clear broken Chrome caches
+    if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        for (const registration of registrations) {
+          registration.unregister();
+          console.log("Stale Service Worker unregistered successfully:", registration);
+        }
+      }).catch(err => {
+        console.warn("Failed to unregister service worker:", err);
+      });
+    }
+
     loadAuth();
     if (supabase) {
       const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
