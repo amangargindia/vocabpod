@@ -70,9 +70,12 @@ function FloatingStickmen({ pose }: { pose: StickmanPose }) {
   );
 }
 
-export default function LessonPage({ params }: { params: Promise<{ slug: string }> }) {
-  const resolvedParams = use(params);
-  const wordSlug = resolvedParams.slug;
+export default function LessonPage({ params }: { params: any }) {
+  // Safe resolution for Next.js 15/16 parameter changes
+  const resolvedParams = params && typeof params.then === "function"
+    ? use(params)
+    : params;
+  const wordSlug = resolvedParams?.slug;
 
   // Page Data State
   const [lesson, setLesson] = useState<WordLesson | null>(null);

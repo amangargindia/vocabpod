@@ -99,7 +99,7 @@ export default function PaywallLanding() {
 
       {/* Header with Login Button */}
       <div className="absolute top-6 right-6 z-20">
-        <a href="/signin" className="text-sm font-bold border border-white/10 px-6 py-2 rounded-full hover:bg-white/5 transition-colors uppercase tracking-widest">
+        <a href="/login" className="text-sm font-bold border border-white/10 px-6 py-2 rounded-full hover:bg-white/5 transition-colors uppercase tracking-widest">
           Login
         </a>
       </div>
