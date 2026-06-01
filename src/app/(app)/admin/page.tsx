@@ -5,6 +5,48 @@ import Link from "next/link";
 import { insertWordLesson, getUser } from "@/lib/supabase";
 import Stickman, { STICKMAN_POSES, StickmanPose } from "@/components/Stickman";
 
+interface SVGNode {
+  tag: string;
+  props: Record<string, any>;
+  children?: SVGNode[];
+}
+
+const DynamicSVGNode = ({ node }: { node: SVGNode }) => {
+  const Tag = node.tag as any;
+  
+  const sanitizedProps = { ...node.props };
+  if (typeof sanitizedProps.style === "string") {
+    const styleObj: Record<string, string> = {};
+    sanitizedProps.style.split(";").forEach((pair) => {
+      const idx = pair.indexOf(":");
+      if (idx !== -1) {
+        let key = pair.slice(0, idx).trim();
+        const value = pair.slice(idx + 1).trim();
+        if (key && value) {
+          if (!key.startsWith("--")) {
+            key = key.replace(/-([a-z])/g, (_, g) => g.toUpperCase());
+          }
+          styleObj[key] = value;
+        }
+      }
+    });
+    sanitizedProps.style = styleObj;
+  }
+
+  if (sanitizedProps.class && !sanitizedProps.className) {
+    sanitizedProps.className = sanitizedProps.class;
+    delete sanitizedProps.class;
+  }
+
+  return (
+    <Tag {...sanitizedProps}>
+      {node.children?.map((child, idx) => (
+        <DynamicSVGNode key={idx} node={child} />
+      ))}
+    </Tag>
+  );
+};
+
 export default function AdminPortal() {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [userEmail, setUserEmail] = useState("");
@@ -22,6 +64,10 @@ export default function AdminPortal() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState({ text: "", type: "" });
   const [quickImportText, setQuickImportText] = useState("");
+  
+  // Drafts & Recording Mode State
+  const [drafts, setDrafts] = useState<any[]>([]);
+  const [isRecordingMode, setIsRecordingMode] = useState(false);
 
   const [word, setWord] = useState("");
   const [phonetic, setPhonetic] = useState("");
@@ -84,6 +130,71 @@ export default function AdminPortal() {
     }
     checkAuth();
   }, []);
+
+  useEffect(() => {
+    const savedDrafts = localStorage.getItem('vocabpod_drafts');
+    if (savedDrafts) {
+      try {
+        setDrafts(JSON.parse(savedDrafts));
+      } catch(e) {}
+    }
+  }, []);
+
+  const saveToDrafts = () => {
+    if (!word) {
+      setMessage({ text: "Please enter a word before saving to drafts.", type: "error" });
+      return;
+    }
+    const currentDraft = {
+      id: Date.now().toString(),
+      word, phonetic, type, definition, narrative, story, realLifeUsages,
+      wordLevel, wordCategory, isFreePreview, stickmanId, svgJson, customSvg,
+      question, opt1, opt2, opt3, opt4, correctOpt, explanation
+    };
+    
+    const existingIndex = drafts.findIndex(d => d.word.toLowerCase() === word.toLowerCase());
+    let newDrafts = [...drafts];
+    if (existingIndex !== -1) {
+      newDrafts[existingIndex] = { ...currentDraft, id: drafts[existingIndex].id };
+    } else {
+      newDrafts.push(currentDraft);
+    }
+    
+    setDrafts(newDrafts);
+    localStorage.setItem('vocabpod_drafts', JSON.stringify(newDrafts));
+    setMessage({ text: "Saved to Drafts!", type: "success" });
+  };
+
+  const loadDraft = (draft: any) => {
+    setWord(draft.word || "");
+    setPhonetic(draft.phonetic || "");
+    setType(draft.type || "adjective");
+    setDefinition(draft.definition || "");
+    setNarrative(draft.narrative || "");
+    setStory(draft.story || "");
+    setRealLifeUsages(draft.realLifeUsages || [{context: "", example: ""}]);
+    setWordLevel(draft.wordLevel || 1);
+    setWordCategory(draft.wordCategory || "");
+    setIsFreePreview(draft.isFreePreview || false);
+    setStickmanId(draft.stickmanId || "");
+    setSvgJson(draft.svgJson || '[\n  {"tag": "circle", "props": {"cx": "200", "cy": "150", "r": "20", "fill": "#E04B35"}}\n]');
+    setCustomSvg(draft.customSvg || "");
+    setQuestion(draft.question || "");
+    setOpt1(draft.opt1 || "");
+    setOpt2(draft.opt2 || "");
+    setOpt3(draft.opt3 || "");
+    setOpt4(draft.opt4 || "");
+    setCorrectOpt(draft.correctOpt || 1);
+    setExplanation(draft.explanation || "");
+    setMessage({ text: "Draft loaded!", type: "success" });
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  };
+
+  const deleteDraft = (id: string) => {
+    const newDrafts = drafts.filter(d => d.id !== id);
+    setDrafts(newDrafts);
+    localStorage.setItem('vocabpod_drafts', JSON.stringify(newDrafts));
+  };
 
   const fetchCustomStickmans = async () => {
     try {
@@ -271,28 +382,56 @@ export default function AdminPortal() {
 
       setWord(getField("WORD"));
       setPhonetic(getField("PHONETIC"));
+      
       const t = getField("TYPE").toLowerCase();
-      if (t) setType(t);
+      if (t.includes("adjective")) {
+        setType("adjective");
+      } else if (t.includes("verb")) {
+        setType("verb");
+      } else if (t.includes("noun")) {
+        setType("noun");
+      }
+      
       setDefinition(getField("DEFINITION"));
       setNarrative(getField("NARRATIVE"));
       setStory(getField("STORY"));
+      
       const usage = getField("USAGE");
       if (usage) {
+        let parsed = null;
         if (usage.trim().startsWith("[")) {
-          try { setRealLifeUsages(JSON.parse(usage)); } catch (e) {}
+          try {
+            parsed = JSON.parse(usage);
+          } catch (e) {
+            // Not a valid JSON array, will fallback below
+          }
+        }
+
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setRealLifeUsages(parsed);
         } else {
-          const lines = usage.split("\n").map(l => l.trim()).filter(Boolean);
-          const parsed = lines.map(l => {
-            const [ctx, ...ex] = l.split("|");
+          let cleanedUsage = usage.trim();
+          if (cleanedUsage.startsWith("[") && cleanedUsage.endsWith("]")) {
+            cleanedUsage = cleanedUsage.slice(1, -1).trim();
+          }
+          const lines = cleanedUsage.split("\n").map(l => l.trim()).filter(Boolean);
+          const parsedLines = lines.map(l => {
+            let lineContent = l.trim();
+            if (lineContent.startsWith("[") && lineContent.endsWith("]")) {
+              lineContent = lineContent.slice(1, -1).trim();
+            }
+            const [ctx, ...ex] = lineContent.split("|");
             return { context: ctx.trim(), example: ex.join("|").trim() };
           });
-          if (parsed.length > 0) setRealLifeUsages(parsed);
+          if (parsedLines.length > 0) setRealLifeUsages(parsedLines);
         }
       }
+      
       const lvl = parseInt(getField("LEVEL"));
       if (lvl >= 1 && lvl <= 3) setWordLevel(lvl);
       const cat = getField("CATEGORY");
       if (cat) setWordCategory(cat);
+      
       const svg = getField("SVG");
       if (svg) setSvgJson(svg);
       
@@ -464,13 +603,99 @@ export default function AdminPortal() {
       setIsSubmitting(false);
     }
   };
+  const renderWithHighlights = (text: string) => {
+    if (!text) return text;
+    const parts = text.split(/(\*\*.*?\*\*)/g);
+    return parts.map((part, i) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <span key={i} className="text-terracotta font-bold">{part.slice(2, -2)}</span>;
+      }
+      return <span key={i}>{part}</span>;
+    });
+  };
 
   if (!isAuthorized) return null;
 
   return (
     <div className="min-h-screen bg-absolute-black text-light-gray font-sans selection:bg-terracotta/20 selection:text-terracotta pb-20">
-      
-      {/* Admin Header */}
+      {isRecordingMode && (
+        <div className="fixed inset-0 z-[100] bg-absolute-black flex flex-col p-12 overflow-y-auto custom-scrollbar">
+          <button 
+            onClick={() => setIsRecordingMode(false)}
+            className="fixed top-8 right-8 text-muted-ash hover:text-terracotta bg-deep-canvas border border-white/10 p-4 rounded-full transition-all flex items-center gap-2"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            <span className="font-bold uppercase tracking-wider text-xs">Exit Recording Mode</span>
+          </button>
+          
+          <div className="max-w-4xl mx-auto w-full space-y-16 pb-32 mt-12">
+            <div className="text-center space-y-4">
+              <h1 className="text-sm font-bold uppercase tracking-widest text-terracotta">Word</h1>
+              <div className="text-6xl md:text-8xl font-black tracking-tight text-light-gray">{word || "[No Word Entered]"}</div>
+              {phonetic && <div className="text-2xl text-muted-ash font-serif italic">{phonetic}</div>}
+            </div>
+
+            <div className="space-y-4 border-t border-white/10 pt-16">
+              <h2 className="text-sm font-bold uppercase tracking-widest text-terracotta">Definition</h2>
+              <div className="text-4xl leading-snug font-medium text-light-gray">{renderWithHighlights(definition) || "[No Definition Entered]"}</div>
+            </div>
+
+            {story && (
+              <div className="space-y-4 border-t border-white/10 pt-16">
+                <h2 className="text-sm font-bold uppercase tracking-widest text-terracotta">Story</h2>
+                <div className="text-3xl leading-relaxed text-light-gray/90 whitespace-pre-wrap">{renderWithHighlights(story)}</div>
+              </div>
+            )}
+
+            <div className="space-y-4 border-t border-white/10 pt-16">
+              <h2 className="text-sm font-bold uppercase tracking-widest text-terracotta">Definition (Reminder)</h2>
+              <div className="text-4xl leading-snug font-medium text-light-gray">{renderWithHighlights(definition) || "[No Definition Entered]"}</div>
+            </div>
+
+            <div className="space-y-4 border-t border-white/10 pt-16">
+              <h2 className="text-sm font-bold uppercase tracking-widest text-terracotta">Mnemonic Narrative</h2>
+              <div className="text-3xl leading-relaxed text-light-gray/90 whitespace-pre-wrap">{renderWithHighlights(narrative) || "[No Narrative Entered]"}</div>
+            </div>
+
+            {realLifeUsages.length > 0 && realLifeUsages[0].example && (
+              <div className="space-y-8 border-t border-white/10 pt-16">
+                <h2 className="text-sm font-bold uppercase tracking-widest text-terracotta">Real Life Usage</h2>
+                <div className="space-y-8">
+                  {realLifeUsages.map((usage, idx) => usage.example ? (
+                    <div key={idx} className="bg-deep-canvas border border-white/5 p-8 rounded-3xl">
+                      {usage.context && <div className="text-xl text-terracotta font-bold mb-4">{usage.context}</div>}
+                      <div className="text-3xl leading-snug text-light-gray">{renderWithHighlights(usage.example)}</div>
+                    </div>
+                  ) : null)}
+                </div>
+              </div>
+            )}
+
+            {question && (
+              <div className="space-y-8 border-t border-white/10 pt-16">
+                <h2 className="text-sm font-bold uppercase tracking-widest text-terracotta">Quiz Question</h2>
+                <div className="text-4xl leading-snug font-medium text-light-gray">{renderWithHighlights(question)}</div>
+                <div className="mt-8 space-y-4">
+                  {[opt1, opt2, opt3, opt4].map((opt, idx) => opt ? (
+                    <div key={idx} className={`text-2xl p-6 rounded-2xl border ${correctOpt === (idx + 1).toString() ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-400 font-bold" : "border-white/10 bg-white/5 text-light-gray"}`}>
+                      {String.fromCharCode(65 + idx)}. {opt}
+                      {correctOpt === (idx + 1).toString() && " (Correct Answer)"}
+                    </div>
+                  ) : null)}
+                </div>
+                {explanation && (
+                  <div className="mt-8 space-y-2">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-muted-ash">Explanation</h3>
+                    <div className="text-2xl leading-relaxed text-light-gray/90">{renderWithHighlights(explanation)}</div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Navigation Sidebar */}
       <header className="sticky top-0 z-50 backdrop-blur-md bg-absolute-black/80 border-b border-terracotta/20 px-4 md:px-6 py-3 md:py-4">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0">
           <div className="flex items-center space-x-2 md:space-x-4 w-full md:w-auto justify-between md:justify-start">
@@ -1185,6 +1410,29 @@ export default function AdminPortal() {
 
             {/* Manual Entry Right Column */}
             <div className="lg:col-span-7">
+              {drafts.length > 0 && (
+                <div className="mb-8 bg-card-gray border border-terracotta/20 rounded-3xl p-6 shadow-xl">
+                  <h2 className="text-sm font-bold uppercase tracking-widest text-terracotta mb-4 flex items-center">
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>
+                    Saved Drafts ({drafts.length})
+                  </h2>
+                  <div className="space-y-3 max-h-48 overflow-y-auto custom-scrollbar pr-2">
+                    {drafts.map(draft => (
+                      <div key={draft.id} className="flex items-center justify-between bg-deep-canvas border border-white/5 p-3 rounded-xl hover:border-terracotta/50 transition-colors">
+                        <div>
+                          <span className="font-bold text-light-gray">{draft.word || "Untitled Draft"}</span>
+                          <span className="text-xs text-muted-ash ml-2">{new Date(parseInt(draft.id)).toLocaleString()}</span>
+                        </div>
+                        <div className="flex gap-2">
+                          <button type="button" onClick={() => loadDraft(draft)} className="text-xs font-bold text-terracotta uppercase hover:underline">Load</button>
+                          <button type="button" onClick={() => deleteDraft(draft.id)} className="text-xs font-bold text-dark-blush hover:text-terracotta uppercase hover:underline transition-colors">Delete</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <h1 className="text-3xl font-bold tracking-tight mb-8">Content Entry System</h1>
               <form onSubmit={handleSubmit} className="space-y-10">
                 
@@ -1410,6 +1658,55 @@ export default function AdminPortal() {
                     <label className="text-xs font-bold text-muted-ash uppercase">Or Structured SVG JSON (Advanced)</label>
                     <textarea required value={svgJson} onChange={e => setSvgJson(e.target.value)} className="w-full bg-deep-canvas border border-white/10 rounded-xl p-3 focus:outline-none focus:border-terracotta/50 font-mono text-xs text-terracotta min-h-[100px]" />
                   </div>
+
+                  {/* Live SVG/Mnemonic Preview */}
+                  {(customSvg || svgJson) && (
+                    <div className="space-y-2 border-t border-white/5 pt-6">
+                      <label className="text-xs font-bold text-muted-ash uppercase tracking-wider block">Live SVG Mnemonic Preview</label>
+                      <div className="w-full h-64 bg-absolute-black/50 border border-white/10 rounded-2xl flex items-center justify-center relative overflow-hidden group">
+                        <div className="absolute inset-0 bg-gradient-to-br from-terracotta/5 to-transparent pointer-events-none"></div>
+                        <div className="absolute top-2 right-2 text-[9px] font-bold uppercase tracking-widest text-muted-ash/50 bg-absolute-black/60 px-2 py-0.5 rounded-md border border-white/5">
+                          Active Preview
+                        </div>
+                        
+                        <div className="w-full h-full p-6 flex items-center justify-center text-light-gray svg-mnemonic-container [&>svg]:max-w-full [&>svg]:max-h-full [&>svg]:w-auto [&>svg]:h-auto">
+                          {customSvg ? (
+                            <div 
+                              className="w-full h-full flex items-center justify-center [&>svg]:w-full [&>svg]:h-full"
+                              dangerouslySetInnerHTML={{ __html: customSvg }}
+                            />
+                          ) : (() => {
+                            try {
+                              if (!svgJson || svgJson.trim() === "" || svgJson.trim() === "[]" || svgJson.trim() === "[]\n") {
+                                return <p className="text-xs text-muted-ash">Empty structured SVG JSON.</p>;
+                              }
+                              const parsed = JSON.parse(svgJson);
+                              if (Array.isArray(parsed) && parsed.length > 0) {
+                                return (
+                                  <svg viewBox="0 0 400 300" className="w-full h-full p-4" xmlns="http://www.w3.org/2000/svg">
+                                    {parsed.map((node: any, index: number) => (
+                                      <DynamicSVGNode key={index} node={node} />
+                                    ))}
+                                  </svg>
+                                );
+                              }
+                            } catch (e) {
+                              return (
+                                <div className="text-center p-4">
+                                  <p className="text-[10px] text-amber-500 font-bold uppercase tracking-wider mb-1">Synthesizing JSON...</p>
+                                  <p className="text-[9px] text-muted-ash/70 font-mono break-all max-w-xs">{(e as Error).message}</p>
+                                </div>
+                              );
+                            }
+                            return <p className="text-xs text-muted-ash">Empty or invalid structured SVG JSON.</p>;
+                          })()}
+                        </div>
+                      </div>
+                      <p className="text-[10px] text-muted-ash/60">
+                        Renders custom SVG code or structured SVG JSON in real time. Standard inline stylesheet animations or SVG SMIL animations (like `animate` and `animateTransform`) are natively supported and executed.
+                      </p>
+                    </div>
+                  )}
                 </section>
 
                 <section className="bg-card-gray border border-white/5 p-8 rounded-3xl space-y-6 shadow-xl">
@@ -1440,13 +1737,29 @@ export default function AdminPortal() {
                   </div>
                 </section>
 
-                <button 
-                  type="submit" 
-                  disabled={isSubmitting}
-                  className="w-full bg-terracotta text-light-gray font-bold py-5 rounded-full hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(224,75,53,0.4)] transition-all disabled:opacity-50 text-sm tracking-wider uppercase"
-                >
-                  {isSubmitting ? "INJECTING LESSON..." : "SUBMIT TO DATABASE"}
-                </button>
+                <div className="flex flex-col md:flex-row gap-4">
+                  <button
+                    type="button"
+                    onClick={saveToDrafts}
+                    className="flex-1 bg-deep-canvas border border-white/20 text-light-gray font-bold py-5 rounded-full hover:border-terracotta/50 transition-all text-sm tracking-wider uppercase"
+                  >
+                    SAVE TO DRAFTS
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsRecordingMode(true)}
+                    className="flex-1 bg-deep-canvas border border-white/20 text-terracotta font-bold py-5 rounded-full hover:border-terracotta/50 transition-all text-sm tracking-wider uppercase"
+                  >
+                    RECORDING MODE
+                  </button>
+                  <button 
+                    type="submit" 
+                    disabled={isSubmitting}
+                    className="flex-[2] bg-terracotta text-light-gray font-bold py-5 rounded-full hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(224,75,53,0.4)] transition-all disabled:opacity-50 text-sm tracking-wider uppercase"
+                  >
+                    {isSubmitting ? "INJECTING LESSON..." : "SUBMIT TO DATABASE"}
+                  </button>
+                </div>
               </form>
             </div>
             </div>

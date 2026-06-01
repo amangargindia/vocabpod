@@ -11,6 +11,7 @@ interface StickmanProps {
   pose: StickmanPose | string;
   className?: string;
   headColor?: string;
+  size?: number;
 }
 
 const POSES: Record<StickmanPose, React.ReactNode> = {
@@ -134,7 +135,7 @@ export const STICKMAN_POSES = Object.keys(POSES) as StickmanPose[];
 let cachedCustomStickmans: Record<string, string> | null = null;
 let fetchPromise: Promise<any> | null = null;
 
-export default function Stickman({ pose, className = "w-24 h-24", headColor = "var(--color-terracotta)" }: StickmanProps) {
+export default function Stickman({ pose, className = "w-24 h-24", headColor = "var(--color-terracotta)", size }: StickmanProps) {
   const isCustom = !POSES[pose as StickmanPose];
   const [customSvg, setCustomSvg] = React.useState<string | null>(cachedCustomStickmans ? cachedCustomStickmans[pose] : null);
 
@@ -162,7 +163,7 @@ export default function Stickman({ pose, className = "w-24 h-24", headColor = "v
   }, [pose, isCustom]);
 
   return (
-    <svg viewBox="0 0 100 120" className={className} stroke="currentColor" fill="none">
+    <svg viewBox="0 0 100 120" className={className} stroke="currentColor" fill="none" style={size ? { width: size, height: size } : undefined}>
       <circle cx="50" cy="20" r="10" fill={headColor} stroke="none" />
       {isCustom ? (
         customSvg ? <g dangerouslySetInnerHTML={{ __html: customSvg }} /> : null

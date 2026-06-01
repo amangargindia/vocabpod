@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { signOut, getUser } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
 import { useEffect, useState } from "react";
+import Logo from "./Logo";
 
 interface NavItem {
   href: string;
@@ -83,7 +84,7 @@ const BugIcon = () => (
 );
 
 const NAV_ITEMS: NavItem[] = [
-  { href: "/", label: "Home", icon: <HomeIcon /> },
+  { href: "/dashboard", label: "Home", icon: <HomeIcon /> },
   { href: "/journey", label: "Journey", icon: <JourneyIcon /> },
   { href: "/leaderboard", label: "Leaderboard", icon: <LeaderboardIcon /> },
   { href: "/autoplay", label: "Autoplay", icon: <AutoplayIcon /> },
@@ -162,10 +163,17 @@ export default function Sidebar() {
         className={`fixed bottom-0 left-0 w-full h-[70px] z-50 flex flex-row items-center justify-around bg-deep-canvas border-t border-white/5 md:top-0 md:h-full md:border-r md:border-t-0 md:flex-col md:justify-start transition-all duration-300 ${collapsed ? "md:w-[70px]" : "md:w-[220px]"}`}
       >
         {/* Sidebar Toggle Area (Desktop Only) */}
-        <div className="hidden md:flex items-center justify-end px-4 py-5 border-b border-white/5 w-full h-[73px] shrink-0">
+        <div className="hidden md:flex items-center justify-between px-4 py-5 border-b border-white/5 w-full h-[73px] shrink-0">
+          <Link href="/" className="shrink-0 flex items-center justify-center">
+            {collapsed ? (
+              <Logo className="w-8 h-8" hideText={true} />
+            ) : (
+              <Logo className="w-32 h-10" />
+            )}
+          </Link>
           <button
             onClick={() => setCollapsed(p => !p)}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-muted-ash hover:text-light-gray hover:bg-white/5 transition-colors ml-auto"
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-muted-ash hover:text-light-gray hover:bg-white/5 transition-colors ml-auto shrink-0"
             aria-label="Toggle sidebar"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" className="w-4 h-4">
@@ -178,7 +186,7 @@ export default function Sidebar() {
         </div>
 
         {/* Nav items */}
-        <nav className="flex-1 flex flex-row items-center justify-around w-full md:flex-col md:items-stretch md:justify-start md:py-4 md:px-2 md:space-y-1 md:overflow-y-auto">
+        <nav className="flex-1 flex flex-row items-center justify-start overflow-x-auto hide-scrollbar w-full px-2 space-x-2 md:flex-col md:items-stretch md:justify-start md:py-4 md:px-2 md:space-x-0 md:space-y-1 md:overflow-y-auto">
           {NAV_ITEMS.map(item => {
             const active = isActive(item.href);
             return (
@@ -245,8 +253,8 @@ export default function Sidebar() {
 
       {/* Bug Report Modal */}
       {showBugModal && (
-        <div className="fixed inset-0 z-[100] bg-absolute-black/90 backdrop-blur-md flex items-center justify-center p-6">
-          <div className="bg-card-gray border border-white/10 rounded-3xl p-8 max-w-sm w-full relative shadow-2xl space-y-6">
+        <div className="fixed inset-0 z-[100] bg-absolute-black/90 backdrop-blur-md flex flex-col justify-center items-center p-4 md:p-6 overflow-y-auto">
+          <div className="bg-card-gray border border-white/10 rounded-3xl p-6 md:p-8 max-w-sm w-full relative shadow-2xl space-y-6 my-auto shrink-0">
             <button 
               onClick={() => setShowBugModal(false)}
               className="absolute top-4 right-4 text-muted-ash hover:text-light-gray font-bold text-lg"

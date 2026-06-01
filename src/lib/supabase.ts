@@ -315,24 +315,53 @@ export async function getUser() {
   return null;
 }
 
-export async function getUserSubscription() {
+export async function getUserSubscription(forceRefresh = false) {
   const user = await getUser();
   if (!user) return { is_premium: false };
+
+  const cacheKey = `vocabpod_sub_${user.id}`;
+  if (!forceRefresh && typeof window !== "undefined") {
+    try {
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        const { data, timestamp } = JSON.parse(cached);
+        const ONE_DAY = 24 * 60 * 60 * 1000;
+        if (Date.now() - timestamp < ONE_DAY) {
+          return data;
+        }
+      }
+    } catch(e) {}
+  }
 
   try {
     const res = await fetch(`/api/profile?userId=${user.id}`);
     if (res.ok) {
       const data = await res.json();
-      return { 
+      const subData = { 
         is_premium: data.isPremium || false,
         renews_at: data.renewsAt || null 
       };
+      
+      if (typeof window !== "undefined") {
+        localStorage.setItem(cacheKey, JSON.stringify({
+          data: subData,
+          timestamp: Date.now()
+        }));
+      }
+      return subData;
     }
   } catch (e) {
     console.warn("Failed to fetch subscription via API:", e);
   }
 
-  // Fallback
+  // Fallback to cache if fetch fails
+  if (typeof window !== "undefined") {
+    try {
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) return JSON.parse(cached).data;
+    } catch(e) {}
+  }
+
   return { is_premium: false };
 }
 

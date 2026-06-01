@@ -10,6 +10,7 @@ import { getTodayIST, toISTDateString } from "@/lib/dateUtils";
 import Logo from "@/components/Logo";
 import Footer from "@/components/Footer";
 import BugReportModal from "@/components/BugReportModal";
+import RestoreSubscription from "@/components/RestoreSubscription";
 
 const LEVEL_LABELS: Record<number, string> = {
   1: "Foundation",
@@ -102,7 +103,7 @@ export default function Dashboard() {
   const srsReviewDueSlugs = new Set(
     Object.values(stats.progressList)
       .filter(p => p.is_completed && p.next_review_at && toISTDateString(p.next_review_at) <= today)
-      .map(p => p.word_slug)
+      .map(p => p.word_slug.toLowerCase())
   );
 
   // Filter feed by disabled levels
@@ -120,7 +121,7 @@ export default function Dashboard() {
     const reviewedTodaySlugs = new Set(
       Object.values(stats.progressList)
         .filter(p => p.last_reviewed_at && toISTDateString(p.last_reviewed_at) === today)
-        .map(p => p.word_slug)
+        .map(p => p.word_slug.toLowerCase())
     );
 
     // SRS due words (skip if already reviewed today)
@@ -166,16 +167,18 @@ export default function Dashboard() {
       return aDate.localeCompare(bDate);
     });
 
+  const dueFeed = filteredFeed.filter(w => srsReviewDueSlugs.has(w.word.toLowerCase()));
+
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-absolute-black text-light-gray font-sans selection:bg-terracotta/20 selection:text-terracotta">
-      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="afterInteractive" />
-<div className="flex-1 flex flex-col min-w-0 pb-[70px] md:pb-0">
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
+      <div className="flex-1 flex flex-col min-w-0 pb-[70px] md:pb-0">
         {/* Top bar */}
         <header className="sticky top-0 z-30 backdrop-blur-md bg-absolute-black/80 border-b border-white/5 px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
-          <div className="flex flex-1 justify-start md:justify-center items-center gap-2 relative">
+          <div className="flex flex-1 justify-start md:hidden items-center gap-2 relative">
             <Link href="/">
-              <Logo className="w-32 md:w-40 h-10 md:h-14" />
+              <Logo className="w-32 h-10" />
             </Link>
             {/* Mail icon — dropdown for About / Contact / Bug Report */}
             <div className="relative" ref={infoMenuRef}>
@@ -444,10 +447,65 @@ export default function Dashboard() {
                  <h3 className="text-xl md:text-2xl font-black text-light-gray tracking-tight">Unlock Your Full Potential</h3>
                  <p className="text-sm text-muted-ash max-w-lg leading-relaxed">Get full access to all words, visual mnemonics, automated reviews, real-life usage scenarios, and premium audio.</p>
                </div>
-               <Link href="/features" className="relative z-10 w-full md:w-auto shrink-0 bg-terracotta text-light-gray font-bold px-8 py-4 rounded-full text-sm uppercase tracking-widest hover:shadow-[0_0_20px_rgba(224,75,53,0.4)] hover:-translate-y-0.5 transition-all text-center">
-                 Upgrade to Premium
-               </Link>
+               <div className="flex flex-col gap-3 relative z-10 w-full md:w-auto shrink-0">
+                 <Link href="/features" className="w-full bg-terracotta text-light-gray font-bold px-8 py-4 rounded-full text-sm uppercase tracking-widest hover:shadow-[0_0_20px_rgba(224,75,53,0.4)] hover:-translate-y-0.5 transition-all text-center">
+                   Upgrade to Premium
+                 </Link>
+                 <RestoreSubscription compact={true} />
+               </div>
              </section>
+          )}
+
+          {/* Due for Review Section */}
+          {isLoaded && dueFeed.length > 0 && (
+            <section className="flex flex-col space-y-4 md:space-y-5">
+              <div className="flex items-center justify-between border-b border-white/5 pb-4">
+                <h2 className="text-lg font-bold text-light-gray tracking-tight flex items-center gap-2">
+                  <span>Due for Review</span>
+                  <span className="text-xs font-bold uppercase tracking-widest text-terracotta bg-terracotta/10 border border-terracotta/20 px-2.5 py-0.5 rounded-full">
+                    {dueFeed.length}
+                  </span>
+                </h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                {dueFeed.map((word) => {
+                  const level = word.level ?? 1;
+                  return (
+                    <Link
+                      key={word.id}
+                      href={`/lesson/${word.word}`}
+                      className="group flex items-center justify-between p-4 md:p-5 rounded-2xl border border-terracotta/40 bg-dark-blush hover:border-terracotta/60 hover:shadow-[0_0_20px_rgba(224,75,53,0.15)] transition-all duration-300 min-w-0"
+                    >
+                      <div className="flex items-center space-x-3 md:space-x-4 min-w-0 opacity-90 group-hover:opacity-100 transition-opacity">
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center border shrink-0 bg-terracotta/20 border-terracotta/50 text-terracotta">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                        </div>
+                        <div className="flex flex-col min-w-0 overflow-hidden">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-lg font-bold tracking-tight uppercase text-light-gray truncate">
+                              {word.word}
+                            </span>
+                            <span className={`text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded border shrink-0 ${LEVEL_COLORS[level]}`}>
+                              {LEVEL_LABELS[level]}
+                            </span>
+                          </div>
+                          <span className="text-xs text-muted-ash mt-0.5 truncate w-full block">
+                            {word.definition}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="hidden xl:flex items-center ml-2 shrink-0 opacity-80 group-hover:opacity-100 transition-opacity">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-terracotta">
+                          Review &rarr;
+                        </span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </section>
           )}
 
           {/* Lesson feed */}

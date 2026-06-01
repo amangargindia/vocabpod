@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 @theme {
-  --color-absolute-black: #000000;
+  --color-absolute-black: #0A0A0A;
   --color-card-gray: #1C1C1E;
-  --color-deep-canvas: #0A0A0C;
+  --color-deep-canvas: #0F0F11;
   --color-light-gray: #F5F5F7;
   --color-muted-ash: #8E8E93;
   --color-terracotta: #E04B35;
@@ -13,7 +13,7 @@
 }
 
 :root {
-  --background: #000000;
+  --background: #0A0A0A;
   --foreground: #F5F5F7;
 }
 
@@ -61,3 +61,84 @@ body {
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+/* Landing page: Slide up from below */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Landing page: Scale in (for demo stage transitions) */
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Marquee scroll for proof bar */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* XP float-up reward animation */
+@keyframes floatUp {
+  0%   { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-40px) scale(1.2); }
+}
+
+/* Subtle background gradient shift */
+@keyframes gradientShift {
+  0% { transform: scale(1) translate(0, 0); opacity: 0.8; }
+  50% { transform: scale(1.05) translate(2%, 2%); opacity: 1; }
+  100% { transform: scale(1) translate(0, 0); opacity: 0.8; }
+}
+
+/* Utilities */
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+
+.content-visibility-auto {
+  content-visibility: auto;
+}
+
+/* Print Styles: Preserve dark mode and exact colors when printing or saving to PDF */
+@media print {
+  *, *:before, *:after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  html, body {
+    background-color: #0A0A0A !important;
+    color: #F5F5F7 !important;
+  }
+
+  /* Prevent awkward page breaks in the middle of sections, cards, and list items */
+  section, 
+  .bg-card-gray, 
+  .bg-absolute-black\/50, 
+  blockquote, 
+  tr, 
+  img, 
+  svg {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Hide interactive or scrolling widgets that do not translate to paper/PDF */
+  .fixed.bottom-8, 
+  iframe, 
+  nav button, 
+  a[href="#pricing"] {
+    /* Keep standard links but hide highly interactive buttons if desired. 
+       Let's keep the layout mostly matching, but hide specific floating components if needed.
+       For a pure "website as is" print, we only hide standard browser controls or heavy animations if they break rendering. */
+  }
+}
+

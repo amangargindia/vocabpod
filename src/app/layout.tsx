@@ -1,9 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
-import MobileWrapper from "@/components/MobileWrapper";
-import ClientSidebar from "@/components/ClientSidebar";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -11,21 +9,30 @@ const inter = Inter({
   display: "swap",
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 export const metadata: Metadata = {
-  title: "Vocabpod",
-  description: "A minimalistic and modern approach to memory and learning.",
+  title: "VocabPod — Master 150 Advanced English Words in 30 Days",
+  description: "VocabPod uses spaced repetition + visual mnemonics to permanently encode vocabulary. Built for GRE, UPSC, CAT, and IELTS aspirants. 5 words a day. 2 minutes. No burnout.",
   openGraph: {
-    title: "Vocabpod",
-    description: "A minimalistic and modern approach to memory and learning.",
-    siteName: "Vocabpod",
-    locale: "en_US",
+    title: "VocabPod — Master 150 Words in 30 Days",
+    description: "Spaced repetition + visual mnemonics. Built for GRE/UPSC/CAT.",
+    images: ["/og-image.png"],
+    siteName: "VocabPod",
+    locale: "en_IN",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Vocabpod",
-    description: "A minimalistic and modern approach to memory and learning.",
+    title: "VocabPod — The Smartest Way to Learn Vocabulary",
+    description: "5 words/day × 30 days = 150 words permanently in memory. For GRE/UPSC.",
   },
+  keywords: ["GRE vocabulary", "UPSC english", "vocabulary app India", "spaced repetition", "learn english words", "VocabPod"],
 };
 
 export default async function RootLayout({
@@ -42,13 +49,11 @@ export default async function RootLayout({
     >
       <head>
         <meta name="darkreader-lock" />
+        <link rel="preconnect" href="https://checkout.razorpay.com" />
       </head>
       <body className={`flex flex-col md:flex-row min-h-full bg-absolute-black text-light-gray ${inter.className}`}>
         <AuthProvider>
-          <ClientSidebar />
-          <div className="flex-1 min-w-0 w-full flex flex-col">
-            {children}
-          </div>
+          {children}
         </AuthProvider>
       </body>
     </html>

@@ -146,8 +146,8 @@ export default function JourneyPage() {
 
   useEffect(() => {
     async function load() {
-      // Fetch all words with level + category
-      const res = await fetch("/api/words");
+      // Fetch all words with level + category, bypassing cache
+      const res = await fetch(`/api/words?t=${Date.now()}`, { cache: "no-store" });
       const data = await res.json();
       setAllWords(data.words || []);
       setIsLoading(false);

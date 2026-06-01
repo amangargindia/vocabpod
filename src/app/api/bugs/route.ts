@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { rateLimit } from "@/lib/rateLimit";
 
 // We use service role to bypass RLS for inserting bug reports or let RLS handle it
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -8,6 +9,11 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 export async function POST(req: Request) {
   try {
+    const ip = req.headers.get("x-forwarded-for") || "unknown";
+    if (!rateLimit(ip, 5, 60000)) {
+      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+    }
+
     const { description, user_id } = await req.json();
 
     if (!description || description.trim() === "") {

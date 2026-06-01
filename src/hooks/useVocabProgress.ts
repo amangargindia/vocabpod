@@ -95,7 +95,7 @@ export function useVocabProgress(initialUserId?: string | null, isParentLoaded?:
 
           if (cloudData && cloudData.length > 0) {
             const list: UserWordProgress[] = cloudData.map((c: any) => ({
-              word_slug: c.word_slug,
+              word_slug: c.word_slug.toLowerCase(),
               is_completed: c.is_completed,
               quiz_score: c.quiz_score,
               last_reviewed_at: c.last_reviewed_at,
@@ -152,7 +152,7 @@ export function useVocabProgress(initialUserId?: string | null, isParentLoaded?:
       }
 
       const existingList = [...prev.progressList];
-      const wordIndex = existingList.findIndex((p) => p.word_slug === normalizedSlug);
+      const wordIndex = existingList.findIndex((p) => p.word_slug.toLowerCase() === normalizedSlug);
       const now = new Date().toISOString();
       const wasAlreadyCompleted = wordIndex >= 0 && existingList[wordIndex].is_completed;
 
@@ -198,7 +198,7 @@ export function useVocabProgress(initialUserId?: string | null, isParentLoaded?:
     const normalizedSlug = wordSlug.toLowerCase();
     setStats((prev) => {
       const list = [...prev.progressList];
-      const idx = list.findIndex((p) => p.word_slug === normalizedSlug);
+      const idx = list.findIndex((p) => p.word_slug.toLowerCase() === normalizedSlug);
       if (idx >= 0) {
         list[idx] = {
           ...list[idx],
@@ -212,7 +212,7 @@ export function useVocabProgress(initialUserId?: string | null, isParentLoaded?:
 
   const getWordProgress = (wordSlug: string): UserWordProgress | null => {
     const normalizedSlug = wordSlug.toLowerCase();
-    return stats.progressList.find((p) => p.word_slug === normalizedSlug) || null;
+    return stats.progressList.find((p) => p.word_slug.toLowerCase() === normalizedSlug) || null;
   };
 
   return {

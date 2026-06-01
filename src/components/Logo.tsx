@@ -2,9 +2,9 @@
 
 import React from "react";
 
-export default function Logo({ className = "w-40 h-14" }: { className?: string }) {
+export default function Logo({ className = "w-40 h-14", hideText = false }: { className?: string; hideText?: boolean }) {
   return (
-    <svg viewBox="0 0 350 120" className={className} xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox={hideText ? "0 0 120 120" : "0 0 350 120"} className={className} xmlns="http://www.w3.org/2000/svg">
       <g stroke="#E04B35" strokeWidth="2.5" strokeLinecap="round">
         <path d="M 50 40 L 40 30" strokeDasharray="20" strokeDashoffset="20">
           <animate attributeName="stroke-dashoffset" values="20; 20; 20; -20; -20" keyTimes="0; 0.2; 0.4; 0.6; 1" dur="3s" repeatCount="indefinite" />
@@ -28,7 +28,9 @@ export default function Logo({ className = "w-40 h-14" }: { className?: string }
       <circle cx="60" cy="48" r="10" fill="#E04B35">
         <animate attributeName="cy" values="48; 20; 65; 48; 48" keyTimes="0; 0.2; 0.4; 0.6; 1" dur="3s" repeatCount="indefinite" calcMode="spline" keySplines="0 0 0.58 1; 0.42 0 1 1; 0 0 0.58 1; 1 0 1 1"/>
       </circle>
-      <text x="125" y="74" fill="#F5F5F7" fontFamily="Inter, sans-serif" fontWeight="700" fontSize="36" letterSpacing="-1">VocabPod</text>
+      {!hideText && (
+        <text x="125" y="74" fill="#F5F5F7" fontFamily="Inter, sans-serif" fontWeight="700" fontSize="36" letterSpacing="-1">VocabPod</text>
+      )}
     </svg>
   );
 }

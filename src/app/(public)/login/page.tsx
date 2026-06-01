@@ -41,7 +41,7 @@ export default function LoginPage() {
       } else if (mode === "signin") {
         res = await signInWithPassword(email, password);
         if (res.success) {
-          window.location.href = "/";
+          window.location.href = "/dashboard";
           return;
         }
       } else if (mode === "reset") {

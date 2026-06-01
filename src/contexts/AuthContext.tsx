@@ -22,8 +22,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isPremium, setIsPremium] = useState(false);
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
 
-  const loadAuth = async () => {
-    setIsLoadingAuth(true);
+  const loadAuth = async (isInitial = false) => {
+    if (isInitial) {
+      setIsLoadingAuth(true);
+    }
     try {
       const [currentUser, subscription] = await Promise.all([
         getUser(),
@@ -34,7 +36,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (e) {
       console.error("Auth context load error:", e);
     } finally {
-      setIsLoadingAuth(false);
+      if (isInitial) {
+        setIsLoadingAuth(false);
+      }
     }
   };
 
@@ -63,11 +67,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    loadAuth();
+    loadAuth(true);
     if (supabase) {
       const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
         if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
-          loadAuth();
+          loadAuth(false);
         } else if (event === "SIGNED_OUT") {
           setUser(null);
           setIsPremium(false);

@@ -10,18 +10,22 @@ const sensitiveLimitMap = new Map<string, { count: number, timestamp: number }>(
 const LIMITS = {
   GENERAL: { max: 100, window: 60 * 1000 },   // 100 req/min for reads
   SENSITIVE: { max: 10, window: 60 * 1000 },  // 10 req/min for checkout, logs, bugs, profile, progress
+  ADMIN: { max: 300, window: 60 * 1000 },     // 300 req/min for admin portal operations
 };
 
-function isSensitiveRoute(pathname: string): boolean {
-  return (
+function getRouteCategory(pathname: string): 'ADMIN' | 'SENSITIVE' | 'GENERAL' {
+  if (pathname.startsWith('/api/admin/')) return 'ADMIN';
+  if (
     pathname.startsWith('/api/checkout/') ||
     pathname.startsWith('/api/bugs') ||
     pathname.startsWith('/api/logs') ||
     pathname.startsWith('/api/upload') ||
     pathname.startsWith('/api/profile') ||
-    pathname.startsWith('/api/progress') ||
-    pathname.startsWith('/api/admin/')
-  );
+    pathname.startsWith('/api/progress')
+  ) {
+    return 'SENSITIVE';
+  }
+  return 'GENERAL';
 }
 
 export async function proxy(request: NextRequest, event: NextFetchEvent) {
@@ -32,10 +36,12 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
     if (ip !== 'unknown') {
       const now = Date.now();
       const pathname = request.nextUrl.pathname;
-      const isSensitive = isSensitiveRoute(pathname);
+      const routeCategory = getRouteCategory(pathname);
+      const limitConfig = LIMITS[routeCategory];
       
-      const limitConfig = isSensitive ? LIMITS.SENSITIVE : LIMITS.GENERAL;
-      const rateLimitMap = isSensitive ? sensitiveLimitMap : generalLimitMap;
+      // We can use generalLimitMap for both GENERAL and ADMIN, or just create an adminLimitMap
+      // Let's just use the same map but different config limits based on category for simplicity
+      const rateLimitMap = routeCategory === 'SENSITIVE' ? sensitiveLimitMap : generalLimitMap;
       
       const ipData = rateLimitMap.get(ip);
       
@@ -46,7 +52,7 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
           return new NextResponse(
             JSON.stringify({ 
               error: 'Too Many Requests', 
-              message: isSensitive 
+              message: routeCategory === 'SENSITIVE'
                 ? 'Rate limit exceeded for sensitive actions. Please try again in a minute.' 
                 : 'Rate limit exceeded.' 
             }),
@@ -125,6 +131,12 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
   if (!user && !isPublicRoute) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = '/';
+    return NextResponse.redirect(redirectUrl);
+  }
+
+  if (user && pathname === '/') {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = '/journey';
     return NextResponse.redirect(redirectUrl);
   }
 

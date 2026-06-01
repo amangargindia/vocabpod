@@ -23,9 +23,30 @@ interface SVGNode {
 const DynamicSVGNode = ({ node }: { node: SVGNode }) => {
   const Tag = node.tag as any;
   
-  // Clean up any React runtime warning properties if necessary
   const sanitizedProps = { ...node.props };
-  
+  if (typeof sanitizedProps.style === "string") {
+    const styleObj: Record<string, string> = {};
+    sanitizedProps.style.split(";").forEach((pair) => {
+      const idx = pair.indexOf(":");
+      if (idx !== -1) {
+        let key = pair.slice(0, idx).trim();
+        const value = pair.slice(idx + 1).trim();
+        if (key && value) {
+          if (!key.startsWith("--")) {
+            key = key.replace(/-([a-z])/g, (_, g) => g.toUpperCase());
+          }
+          styleObj[key] = value;
+        }
+      }
+    });
+    sanitizedProps.style = styleObj;
+  }
+
+  if (sanitizedProps.class && !sanitizedProps.className) {
+    sanitizedProps.className = sanitizedProps.class;
+    delete sanitizedProps.class;
+  }
+
   return (
     <Tag {...sanitizedProps}>
       {node.children?.map((child, idx) => (
@@ -297,7 +318,7 @@ export default function LessonPage({ params }: { params: any }) {
     <div className="flex flex-col md:flex-row min-h-screen bg-absolute-black text-light-gray select-none relative">
       <audio 
         ref={audioRef} 
-        src={audioSrc || lesson.audio_url} 
+        src={audioSrc || lesson.audio_url || undefined} 
         preload="metadata" 
         autoPlay 
         onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
@@ -531,7 +552,7 @@ export default function LessonPage({ params }: { params: any }) {
               </p>
 
               <div className="flex flex-col space-y-4">
-                {activeQuiz.options.map((option, idx) => {
+                {shuffledOptions.map((option, idx) => {
                   const isSelected = selectedOption === idx;
                   let optionStyle = "border-white/5 bg-deep-canvas text-light-gray hover:bg-white/5";
                   

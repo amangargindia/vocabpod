@@ -171,7 +171,7 @@ const playDing = () => {
           <p className="text-sm text-muted-ash">Add Level 1 or 2 words with audio in the admin portal.</p>
         </div>
       ) : current ? (
-        <div className={`autoplay-card w-full max-w-sm space-y-4 md:space-y-8 text-center transition-all duration-700 ease-in-out transform ${isTransitioning ? 'opacity-0 scale-95 translate-x-10' : 'opacity-100 scale-100 translate-x-0'}`}>
+        <div className={`autoplay-card w-full max-w-sm flex flex-col justify-center overflow-y-auto hide-scrollbar space-y-4 md:space-y-8 text-center transition-all duration-700 ease-in-out transform ${isTransitioning ? 'opacity-0 scale-95 translate-x-10' : 'opacity-100 scale-100 translate-x-0'}`}>
           {/* Word display */}
           <div className="space-y-2">
             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-terracotta border border-terracotta/30 bg-dark-blush px-3 py-1 rounded-full">
@@ -279,29 +279,8 @@ const playDing = () => {
           0% { transform: scaleY(0.4); }
           100% { transform: scaleY(1.2); }
         }
-        @media (max-height: 740px) {
-          .autoplay-card {
-            transform: scale(0.9);
-            transform-origin: center center;
-            margin-top: -10px;
-            margin-bottom: -10px;
-          }
-        }
-        @media (max-height: 660px) {
-          .autoplay-card {
-            transform: scale(0.82);
-            transform-origin: center center;
-            margin-top: -25px;
-            margin-bottom: -25px;
-          }
-        }
-        @media (max-height: 580px) {
-          .autoplay-card {
-            transform: scale(0.72);
-            transform-origin: center center;
-            margin-top: -40px;
-            margin-bottom: -40px;
-          }
+        .autoplay-card {
+          max-height: 100%;
         }
       `}</style>
       <div className="flex-1 min-w-0 flex flex-col h-full overflow-hidden">
