@@ -102,24 +102,27 @@ export async function POST(req: Request) {
     
     let notesUserId = "";
     let notesEmail = "";
+    let razorpayCustomerId: string | null = null;
 
     if (razorpay_subscription_id) {
       const subscription = await razorpay.subscriptions.fetch(razorpay_subscription_id);
-      
-      const validStatuses = ['active', 'authenticated', 'completed'];
-      if (!validStatuses.includes(subscription.status)) {
-        console.error("Subscription verification rejected — invalid status: " + subscription.status);
-        return NextResponse.json({ error: "Subscription is not in an active state (status: " + subscription.status + "). Payment may not have been captured yet." }, { status: 402 });
-      }
+
+      // Log subscription status for observability — but NEVER block on it.
+      // Razorpay's handler fires the moment the user authorises payment,
+      // while the status (active/authenticated) can lag by seconds.
+      // The HMAC-SHA256 signature above is our cryptographic proof of payment.
+      console.log("[verify] Subscription status at verification time:", subscription.status, "| sub:", razorpay_subscription_id);
 
       notesUserId = String(subscription?.notes?.userId || "");
       notesEmail = String(subscription?.notes?.email || "");
+
+      // Grab customer_id from this same fetch — no second API call needed
+      if (!razorpayCustomerId) {
+        razorpayCustomerId = (subscription as any).customer_id || null;
+      }
     } else if (razorpay_order_id) {
       const order = await razorpay.orders.fetch(razorpay_order_id);
-      
-      if (order.status !== 'paid') {
-         console.warn("Invalid order status: " + order.status + " but signature is verified. Proceeding.");
-      }
+      console.log("[verify] Order status at verification time:", order.status, "| order:", razorpay_order_id);
 
       notesUserId = String(order?.notes?.userId || "");
       notesEmail = String(order?.notes?.email || "");
@@ -139,17 +142,7 @@ export async function POST(req: Request) {
     }
 
     if (adminSupabase && authUserId) {
-      // Fetch actual Razorpay customer_id from subscription metadata
-      let razorpayCustomerId: string | null = null;
-      if (razorpay_subscription_id) {
-        try {
-          const sub = await razorpay.subscriptions.fetch(razorpay_subscription_id);
-          razorpayCustomerId = (sub as any).customer_id || null;
-        } catch (e) {
-          console.warn("Could not fetch customer_id from subscription:", e);
-        }
-      }
-
+      // razorpayCustomerId may already be set from the subscription fetch above
       // Upsert to prevent duplicate violations and ensure atomic updates
       const { error } = await adminSupabase
         .from("users_subscriptions")
