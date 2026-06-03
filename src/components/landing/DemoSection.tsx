@@ -13,32 +13,23 @@ import type { SalesConfig } from "./useSalesConfig";
 import { useSalesConfig } from "./useSalesConfig";
 import { useSwipe } from "@/hooks/useSwipe";
 import {
-  Lock,
   Check,
   X,
   ArrowLeft,
   ArrowRight,
   RefreshCw,
-  X as XIcon,
   Volume2,
 } from "lucide-react";
-import Link from "next/link";
 
 interface Props {
   initialData?: SalesConfig | null;
 }
 
 export default function DemoSection({ initialData }: Props) {
-  const [isDemoUnlocked, setIsDemoUnlocked] = useState(false);
   const [currentStage, setCurrentStage] = useState<0 | 1 | 2 | 3 | 4 | 5>(0);
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const { language } = useLandingLanguage();
   const { words: liveWords } = useSalesConfig(initialData ?? undefined);
-
-  const [showEmailModal, setShowEmailModal] = useState(false);
-  const [emailInput, setEmailInput] = useState("");
-  const [emailSubmitting, setEmailSubmitting] = useState(false);
-  const [emailError, setEmailError] = useState("");
 
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [xpFloating, setXpFloating] = useState(false);
@@ -55,10 +46,6 @@ export default function DemoSection({ initialData }: Props) {
   const [inView, setInView] = useState(false);
   const isPlayingRef = useRef(false);
 
-  // Fixed bar visibility
-  const demoBottomRef = useRef<HTMLDivElement>(null);
-  const [showFixedBar, setShowFixedBar] = useState(false);
-
   const displayWords: DemoWord[] =
     liveWords.length > 0
       ? liveWords.map(liveToDemoWord)
@@ -68,10 +55,7 @@ export default function DemoSection({ initialData }: Props) {
 
   const word = displayWords[Math.min(currentWordIndex, displayWords.length - 1)];
 
-  /* ── Unlock from localStorage ── */
-  useEffect(() => {
-    if (localStorage.getItem("vocabpod_demo_unlocked")) setIsDemoUnlocked(true);
-  }, []);
+
 
   /* ── Audio setup ── */
   useEffect(() => {
@@ -156,24 +140,7 @@ export default function DemoSection({ initialData }: Props) {
     return () => observer.disconnect();
   }, []);
 
-  /* ── Show fixed bottom nav bar while demo content is on screen ── */
-  useEffect(() => {
-    const sentinel = demoBottomRef.current;
-    if (!sentinel) return;
 
-    // Show bar when sentinel (bottom of section) is NOT in view
-    const obs = new IntersectionObserver(
-      ([entry]) => {
-        // If the bottom of demo is not visible, AND top part is visible → show bar
-        setShowFixedBar(!entry.isIntersecting && inView);
-      },
-      { threshold: 0 }
-    );
-
-    obs.observe(sentinel);
-    return () => obs.disconnect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [inView]);
 
   // Simpler: just show bar when inView AND stage < 5
   const shouldShowBar = inView && currentStage < 5;
@@ -207,10 +174,6 @@ export default function DemoSection({ initialData }: Props) {
   };
 
   const handleNextClick = () => {
-    if (!isDemoUnlocked && currentStage === 0) {
-      setShowEmailModal(true);
-      return;
-    }
     advanceStage();
   };
 
@@ -224,29 +187,6 @@ export default function DemoSection({ initialData }: Props) {
       setSelectedAnswer(null);
       setXpFloating(false);
     }
-  };
-
-  const handleEmailSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setEmailSubmitting(true);
-    setEmailError("");
-    if (!/^\S+@\S+\.\S+$/.test(emailInput)) {
-      setEmailError("Please enter a valid email address.");
-      setEmailSubmitting(false);
-      return;
-    }
-    try {
-      await fetch("/api/landing/collect-email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: emailInput }),
-      });
-    } catch {}
-    localStorage.setItem("vocabpod_demo_unlocked", emailInput);
-    setIsDemoUnlocked(true);
-    setShowEmailModal(false);
-    setEmailSubmitting(false);
-    advanceStage();
   };
 
   const handleAnswerSelect = (idx: number) => {
@@ -307,7 +247,6 @@ export default function DemoSection({ initialData }: Props) {
               {stageLabels.map((label, idx) => {
                 const completed = idx < currentStage;
                 const current = idx === currentStage;
-                const locked = !isDemoUnlocked && idx > 0;
                 return (
                   <div key={idx} className="flex flex-col items-center gap-1 bg-absolute-black px-1">
                     <div
@@ -319,14 +258,14 @@ export default function DemoSection({ initialData }: Props) {
                           : "bg-card-gray border border-white/10 text-muted-ash"
                       }`}
                     >
-                      {completed ? <Check size={11} /> : locked ? <Lock size={10} /> : idx + 1}
+                      {completed ? <Check size={11} /> : idx + 1}
                     </div>
                     <span
                       className={`text-[7px] md:text-[10px] font-bold uppercase tracking-wider hidden sm:block transition-colors ${
                         current || completed ? "text-light-gray" : "text-muted-ash"
                       }`}
                     >
-                      {locked ? "LOCKED" : label}
+                      {label}
                     </span>
                   </div>
                 );
@@ -531,7 +470,7 @@ export default function DemoSection({ initialData }: Props) {
           </div>
 
           {/* Bottom sentinel — used to detect when section ends */}
-          <div ref={demoBottomRef} className="h-px w-full" />
+          <div className="h-px w-full" />
         </div>
       </section>
 
@@ -673,48 +612,7 @@ export default function DemoSection({ initialData }: Props) {
         </div>
       )}
 
-      {/* Email gate modal */}
-      {showEmailModal && (
-        <div className="fixed inset-0 z-[100] bg-absolute-black/90 backdrop-blur-md flex items-center justify-center p-4 animate-[fadeIn_0.2s_ease]">
-          <div className="bg-card-gray border border-terracotta/20 rounded-3xl p-6 md:p-8 max-w-sm w-full relative shadow-2xl animate-[scaleIn_0.3s_ease]">
-            <button
-              onClick={() => setShowEmailModal(false)}
-              className="absolute top-4 right-4 text-muted-ash hover:text-light-gray transition-colors"
-            >
-              <XIcon size={20} />
-            </button>
-            <h3 className="text-xl md:text-2xl font-black uppercase tracking-tight text-light-gray mb-1 mt-2">
-              Unlock the Full Demo
-            </h3>
-            <p className="text-xs md:text-sm text-muted-ash mb-6 leading-relaxed">
-              See how VocabPod encodes words permanently. Enter your email to unlock.
-            </p>
-            <form onSubmit={handleEmailSubmit} className="space-y-4">
-              <div>
-                <input
-                  type="email"
-                  required
-                  placeholder="you@example.com"
-                  value={emailInput}
-                  onChange={(e) => setEmailInput(e.target.value)}
-                  className="w-full bg-absolute-black border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-terracotta/50 transition-colors text-light-gray"
-                />
-                {emailError && <p className="text-terracotta text-xs mt-2">{emailError}</p>}
-              </div>
-              <button
-                type="submit"
-                disabled={emailSubmitting}
-                className="w-full bg-terracotta text-light-gray font-bold text-sm tracking-widest uppercase py-3 rounded-xl hover:shadow-[0_0_20px_rgba(224,75,53,0.4)] transition-all disabled:opacity-50"
-              >
-                {emailSubmitting ? "Unlocking..." : "Unlock Demo →"}
-              </button>
-              <p className="text-center text-[10px] text-muted-ash uppercase tracking-widest pt-2">
-                No spam. No credit card required.
-              </p>
-            </form>
-          </div>
-        </div>
-      )}
+
     </>
   );
 }
