@@ -43,7 +43,7 @@ export default function CheckoutPage() {
       if (!checkRes.ok) throw new Error(checkData.error || "Failed to verify email availability");
       
       if (checkData.exists) {
-        throw new Error("A user with this email address has already been registered. Please log in first.");
+        throw new Error("__existing_user__");
       }
 
       const res = await fetch("/api/checkout/razorpay", {
@@ -187,7 +187,17 @@ export default function CheckoutPage() {
                 />
               </div>
               
-              {error && <p className="text-terracotta text-xs">{error}</p>}
+              {error && (
+                <p className="text-terracotta text-xs">
+                  {error === "__existing_user__" ? (
+                    <>
+                      An account with this email already exists.{" "}
+                      <a href="/login" className="underline font-bold hover:text-terracotta/80">Log in here</a>{" "}
+                      to access your account.
+                    </>
+                  ) : error}
+                </p>
+              )}
               
               <button
                 type="submit"
@@ -226,6 +236,7 @@ export default function CheckoutPage() {
                   type="password"
                   required
                   minLength={6}
+                  autoFocus
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="At least 6 characters"
@@ -233,7 +244,9 @@ export default function CheckoutPage() {
                 />
               </div>
               
-              {error && <p className="text-terracotta text-xs">{error}</p>}
+              {error && (
+                <p className="text-terracotta text-xs">{error}</p>
+              )}
               {message && <p className="text-emerald-400 text-xs text-center font-bold animate-pulse">{message}</p>}
               
               <button

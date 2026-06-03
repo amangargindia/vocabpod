@@ -106,8 +106,10 @@ export async function POST(req: Request) {
     if (razorpay_subscription_id) {
       const subscription = await razorpay.subscriptions.fetch(razorpay_subscription_id);
       
-      if (subscription.status !== 'active' && subscription.status !== 'authenticated' && subscription.status !== 'completed') {
-         console.warn("Invalid subscription status: " + subscription.status + " but signature is verified. Proceeding.");
+      const validStatuses = ['active', 'authenticated', 'completed'];
+      if (!validStatuses.includes(subscription.status)) {
+        console.error("Subscription verification rejected — invalid status: " + subscription.status);
+        return NextResponse.json({ error: "Subscription is not in an active state (status: " + subscription.status + "). Payment may not have been captured yet." }, { status: 402 });
       }
 
       notesUserId = String(subscription?.notes?.userId || "");
@@ -137,12 +139,23 @@ export async function POST(req: Request) {
     }
 
     if (adminSupabase && authUserId) {
+      // Fetch actual Razorpay customer_id from subscription metadata
+      let razorpayCustomerId: string | null = null;
+      if (razorpay_subscription_id) {
+        try {
+          const sub = await razorpay.subscriptions.fetch(razorpay_subscription_id);
+          razorpayCustomerId = (sub as any).customer_id || null;
+        } catch (e) {
+          console.warn("Could not fetch customer_id from subscription:", e);
+        }
+      }
+
       // Upsert to prevent duplicate violations and ensure atomic updates
       const { error } = await adminSupabase
         .from("users_subscriptions")
         .upsert({
           user_id: authUserId,
-          razorpay_customer_id: razorpay_payment_id,
+          razorpay_customer_id: razorpayCustomerId,
           razorpay_order_id: razorpay_order_id || null,
           razorpay_subscription_id: razorpay_subscription_id || null,
           is_premium: true,

@@ -111,6 +111,7 @@ export default function UpgradePage() {
 
   return (
     <div className="min-h-screen bg-absolute-black text-light-gray font-sans selection:bg-terracotta/20 selection:text-terracotta flex flex-col items-center justify-center md:p-6">
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" />
 
       <div className="bg-card-gray border border-white/5 rounded-none md:rounded-3xl p-6 md:p-10 max-w-lg w-full min-h-screen md:min-h-0 flex flex-col justify-center text-center shadow-2xl relative overflow-hidden">
         <div className="absolute top-6 left-6 z-20">

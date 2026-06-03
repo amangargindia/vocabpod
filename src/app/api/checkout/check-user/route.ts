@@ -32,6 +32,11 @@ export async function GET(req: Request) {
       });
 
       if (error || !data || !data.users || data.users.length === 0) {
+        // If error, fail-safe by returning 500 so checkout is blocked
+        if (error) {
+          console.error("listUsers error:", error);
+          return NextResponse.json({ error: "Failed to verify email — please try again" }, { status: 500 });
+        }
         break;
       }
 
