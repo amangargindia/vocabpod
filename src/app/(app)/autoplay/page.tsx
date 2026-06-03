@@ -58,6 +58,60 @@ const DynamicSVGNode = ({ node }: { node: SVGNode }) => {
   );
 };
 
+function AudioProgressBar({ audioRef }: { audioRef: React.RefObject<HTMLAudioElement | null> }) {
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const onTime = () => setCurrentTime(audio.currentTime);
+    const onMeta = () => setDuration(audio.duration || 0);
+
+    audio.addEventListener("timeupdate", onTime);
+    audio.addEventListener("loadedmetadata", onMeta);
+
+    // Initial sync
+    setCurrentTime(audio.currentTime);
+    setDuration(audio.duration || 0);
+
+    return () => {
+      audio.removeEventListener("timeupdate", onTime);
+      audio.removeEventListener("loadedmetadata", onMeta);
+    };
+  }, [audioRef]);
+
+  const formatTime = (t: number) => {
+    const m = Math.floor(t / 60);
+    const s = Math.floor(t % 60);
+    return `${m}:${s < 10 ? "0" : ""}${s}`;
+  };
+
+  if (duration <= 0) return null;
+
+  return (
+    <div className="space-y-1">
+      <input
+        type="range"
+        min={0}
+        max={duration}
+        value={currentTime}
+        onChange={e => {
+          const t = Number(e.target.value);
+          if (audioRef.current) audioRef.current.currentTime = t;
+          setCurrentTime(t);
+        }}
+        className="w-full accent-terracotta cursor-pointer h-1 bg-white/10 rounded-full appearance-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5 [&::-webkit-slider-thumb]:h-2.5 [&::-webkit-slider-thumb]:bg-terracotta [&::-webkit-slider-thumb]:rounded-full"
+      />
+      <div className="flex items-center justify-between text-[9px] text-muted-ash font-bold px-1">
+        <span>{formatTime(currentTime)}</span>
+        <span>{formatTime(duration)}</span>
+      </div>
+    </div>
+  );
+}
+
 interface AutoplayWord {
   id: string;
   word: string;
@@ -75,8 +129,6 @@ export default function AutoplayPage() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [audioSrc, setAudioSrc] = useState<string>("");
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
   const audioRef = useRef<HTMLAudioElement>(null);
   const { isPremium, isLoadingAuth, user } = useAuth();
   const { stats, isLoaded: isProgressLoaded, getWordProgress } = useVocabProgress(user?.id, !isLoadingAuth);
@@ -182,21 +234,15 @@ const playDing = () => {
         }, 800);
       }
     };
-    const onTime = () => setCurrentTime(audio.currentTime);
-    const onMeta = () => setDuration(audio.duration || 0);
     const onPlay = () => setIsPlaying(true);
     const onPause = () => setIsPlaying(false);
 
     audio.addEventListener("ended", onEnded);
-    audio.addEventListener("timeupdate", onTime);
-    audio.addEventListener("loadedmetadata", onMeta);
     audio.addEventListener("play", onPlay);
     audio.addEventListener("pause", onPause);
 
     return () => {
       audio.removeEventListener("ended", onEnded);
-      audio.removeEventListener("timeupdate", onTime);
-      audio.removeEventListener("loadedmetadata", onMeta);
       audio.removeEventListener("play", onPlay);
       audio.removeEventListener("pause", onPause);
     };
@@ -220,11 +266,7 @@ const playDing = () => {
     }
   };
 
-  const formatTime = (t: number) => {
-    const m = Math.floor(t / 60);
-    const s = Math.floor(t % 60);
-    return `${m}:${s < 10 ? "0" : ""}${s}`;
-  };
+
 
   const current = words[index];
 
@@ -382,26 +424,7 @@ const playDing = () => {
               </div>
 
               {/* Progress bar */}
-              {duration > 0 && (
-                <div className="space-y-1">
-                  <input
-                    type="range"
-                    min={0}
-                    max={duration}
-                    value={currentTime}
-                    onChange={e => {
-                      const t = Number(e.target.value);
-                      if (audioRef.current) audioRef.current.currentTime = t;
-                      setCurrentTime(t);
-                    }}
-                    className="w-full accent-terracotta cursor-pointer h-1 bg-white/10 rounded-full appearance-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5 [&::-webkit-slider-thumb]:h-2.5 [&::-webkit-slider-thumb]:bg-terracotta [&::-webkit-slider-thumb]:rounded-full"
-                  />
-                  <div className="flex items-center justify-between text-[9px] text-muted-ash font-bold px-1">
-                    <span>{formatTime(currentTime)}</span>
-                    <span>{formatTime(duration)}</span>
-                  </div>
-                </div>
-              )}
+              <AudioProgressBar audioRef={audioRef} />
             </div>
           </div>
         </div>
