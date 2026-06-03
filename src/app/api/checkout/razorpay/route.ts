@@ -7,6 +7,15 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET as string,
 });
 
+const getRazorpayErrorMessage = (err: any): string => {
+  if (!err) return "Unknown error";
+  if (typeof err === "string") return err;
+  if (err.description) return err.description;
+  if (err.error && err.error.description) return err.error.description;
+  if (err.message) return err.message;
+  return JSON.stringify(err);
+};
+
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
@@ -56,8 +65,9 @@ export async function POST(req: Request) {
         planId = newPlan.id;
       } catch (createPlanError: any) {
         console.error("Failed to create Razorpay plan:", createPlanError);
+        const errMsg = getRazorpayErrorMessage(createPlanError);
         return NextResponse.json(
-          { error: "Failed to initialize subscription plan: " + createPlanError.message },
+          { error: "Failed to initialize subscription plan: " + errMsg },
           { status: 500 }
         );
       }
@@ -82,8 +92,9 @@ export async function POST(req: Request) {
     });
   } catch (error: any) {
     console.error("Error creating Razorpay subscription:", error);
+    const errMsg = getRazorpayErrorMessage(error);
     return NextResponse.json(
-      { error: "Failed to create subscription: " + error.message },
+      { error: "Failed to create subscription: " + errMsg },
       { status: 500 }
     );
   }
