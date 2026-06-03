@@ -190,8 +190,6 @@ export default function AutoplayPage() {
     if (!w?.audio_url) return;
 
     setAudioSrc("");
-    setCurrentTime(0);
-    setDuration(0);
 
     getCachedAudio(w.audio_url).then(src => {
       setAudioSrc(src);
