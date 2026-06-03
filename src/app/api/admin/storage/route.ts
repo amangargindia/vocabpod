@@ -108,11 +108,24 @@ export async function GET(req: Request) {
             for (const item of res.Contents) {
               const size = item.Size || 0;
               const key = item.Key || "";
+              const lowerKey = key.toLowerCase();
               
-              if (key.startsWith("audio/")) {
+              const isAudio = lowerKey.endsWith(".mp3") || 
+                              lowerKey.endsWith(".wav") || 
+                              lowerKey.endsWith(".m4a") || 
+                              key.startsWith("audio/");
+                              
+              const isImageOrSvg = lowerKey.endsWith(".png") || 
+                                   lowerKey.endsWith(".jpg") || 
+                                   lowerKey.endsWith(".jpeg") || 
+                                   lowerKey.endsWith(".svg") || 
+                                   lowerKey.endsWith(".webp") || 
+                                   key.startsWith("images/");
+
+              if (isAudio) {
                 audioSize += size;
                 audioCount++;
-              } else if (key.startsWith("images/")) {
+              } else if (isImageOrSvg) {
                 imageSize += size;
                 imageCount++;
               } else {
