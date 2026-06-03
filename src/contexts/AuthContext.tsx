@@ -43,6 +43,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    // BFCache fix: Chrome on Android restores pages from the back-forward cache
+    // (bfcache). If a previous page crashed (e.g. due to a script error), the
+    // broken state is cached and restored \u2014 causing a permanent black screen.
+    // Detecting persisted=true and forcing a reload clears the broken state.
+    const handlePageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) {
+        console.log("[bfcache] Page restored from bfcache \u2014 forcing reload to prevent black screen");
+        window.location.reload();
+      }
+    };
+    window.addEventListener("pageshow", handlePageShow);
+
     // Unregister any stale service workers and clear Cache Storage to fix Chrome navigation
     if (typeof window !== "undefined" && "serviceWorker" in navigator) {
       navigator.serviceWorker.getRegistrations().then((registrations) => {
@@ -79,8 +91,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       return () => {
         subscription.unsubscribe();
+        window.removeEventListener("pageshow", handlePageShow);
       };
     }
+
+    return () => {
+      window.removeEventListener("pageshow", handlePageShow);
+    };
   }, []);
 
   return (

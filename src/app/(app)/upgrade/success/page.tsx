@@ -13,8 +13,8 @@ export default function UpgradeSuccessPage() {
   return (
     <div className="min-h-screen bg-absolute-black text-light-gray font-sans flex flex-col items-center justify-center p-6 relative overflow-hidden selection:bg-terracotta/20 selection:text-terracotta">
       
-      {/* CSS sparkles and glowing gradients */}
-      <style jsx global>{`
+      {/* CSS sparkles and glowing gradients — plain style tag, App Router compatible */}
+      <style dangerouslySetInnerHTML={{ __html: `
         @keyframes float {
           0% { transform: translateY(0px) rotate(0deg); opacity: 0; }
           50% { opacity: 0.8; }
@@ -24,14 +24,14 @@ export default function UpgradeSuccessPage() {
           0%, 100% { transform: scale(1); opacity: 0.15; }
           50% { transform: scale(1.1); opacity: 0.3; }
         }
-        .sparkle {
+        .success-sparkle {
           position: absolute;
           background: radial-gradient(circle, #E04B35 20%, transparent 60%);
           border-radius: 50%;
           pointer-events: none;
           animation: float 4s infinite linear;
         }
-        .glow-sphere {
+        .success-glow-sphere {
           position: absolute;
           width: 500px;
           height: 500px;
@@ -41,18 +41,18 @@ export default function UpgradeSuccessPage() {
           pointer-events: none;
           animation: pulse-glow 8s infinite ease-in-out;
         }
-      `}</style>
+      ` }} />
 
-      {/* Background elements */}
-      <div className="glow-sphere top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2"></div>
+      {/* Background glow */}
+      <div className="success-glow-sphere top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2"></div>
       
       {mounted && (
         <>
-          <div className="sparkle w-3 h-3 top-[80%] left-[20%]" style={{ animationDelay: '0s', animationDuration: '5s' }}></div>
-          <div className="sparkle w-2 h-2 top-[70%] left-[80%]" style={{ animationDelay: '1s', animationDuration: '4s' }}></div>
-          <div className="sparkle w-4 h-4 top-[60%] left-[45%]" style={{ animationDelay: '2s', animationDuration: '6s' }}></div>
-          <div className="sparkle w-2.5 h-2.5 top-[90%] left-[60%]" style={{ animationDelay: '0.5s', animationDuration: '4.5s' }}></div>
-          <div className="sparkle w-3 h-3 top-[50%] left-[15%]" style={{ animationDelay: '1.5s', animationDuration: '5.5s' }}></div>
+          <div className="success-sparkle w-3 h-3 top-[80%] left-[20%]" style={{ animationDelay: '0s', animationDuration: '5s' }}></div>
+          <div className="success-sparkle w-2 h-2 top-[70%] left-[80%]" style={{ animationDelay: '1s', animationDuration: '4s' }}></div>
+          <div className="success-sparkle w-4 h-4 top-[60%] left-[45%]" style={{ animationDelay: '2s', animationDuration: '6s' }}></div>
+          <div className="success-sparkle w-2.5 h-2.5 top-[90%] left-[60%]" style={{ animationDelay: '0.5s', animationDuration: '4.5s' }}></div>
+          <div className="success-sparkle w-3 h-3 top-[50%] left-[15%]" style={{ animationDelay: '1.5s', animationDuration: '5.5s' }}></div>
         </>
       )}
 
