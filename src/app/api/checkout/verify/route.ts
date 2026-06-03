@@ -86,31 +86,44 @@ export async function POST(req: Request) {
 
     if (razorpay_subscription_id) {
       const subscription = await razorpay.subscriptions.fetch(razorpay_subscription_id);
+      
+      if (subscription.status !== 'active' && subscription.status !== 'authenticated' && subscription.status !== 'completed') {
+         console.error("Invalid subscription status:", subscription.status);
+         return NextResponse.json({ error: "Subscription is not active" }, { status: 400 });
+      }
+
       notesUserId = String(subscription?.notes?.userId || "");
       notesEmail = String(subscription?.notes?.email || "");
     } else if (razorpay_order_id) {
       const order = await razorpay.orders.fetch(razorpay_order_id);
+      
+      if (order.status !== 'paid') {
+         console.error("Invalid order status:", order.status);
+         return NextResponse.json({ error: "Order is not paid" }, { status: 400 });
+      }
+
       notesUserId = String(order?.notes?.userId || "");
       notesEmail = String(order?.notes?.email || "");
     }
 
     // Verify it matches our authenticated/created user
     const emailToCompare = authenticatedUser ? authenticatedUser.email : email;
-    const isUserIdMatch = notesUserId === authUserId || notesUserId === "guest-registration";
-    const isEmailMatch = notesEmail.toLowerCase() === emailToCompare?.toLowerCase();
-
-    if (!isUserIdMatch && !isEmailMatch) {
-       return NextResponse.json({ error: "Verification mismatch" }, { status: 403 });
+    
+    if (notesUserId === "guest-registration") {
+      if (!emailToCompare || notesEmail.toLowerCase() !== emailToCompare.toLowerCase()) {
+        return NextResponse.json({ error: "Verification mismatch (email)" }, { status: 403 });
+      }
+    } else {
+      if (notesUserId !== authUserId) {
+        return NextResponse.json({ error: "Verification mismatch (user)" }, { status: 403 });
+      }
     }
 
     if (adminSupabase && authUserId) {
-      // Explicitly delete any old rows to prevent duplicates
-      await adminSupabase.from("users_subscriptions").delete().eq("user_id", authUserId);
-
-      // Insert fresh premium status
+      // Upsert to prevent duplicate violations and ensure atomic updates
       const { error } = await adminSupabase
         .from("users_subscriptions")
-        .insert({
+        .upsert({
           user_id: authUserId,
           razorpay_customer_id: razorpay_payment_id,
           razorpay_order_id: razorpay_order_id || null,
@@ -118,10 +131,12 @@ export async function POST(req: Request) {
           is_premium: true,
           renews_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
           updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id'
         });
 
       if (error) {
-        console.error("Failed to insert user subscription:", error);
+        console.error("Failed to upsert user subscription:", error);
         return NextResponse.json({ error: "Database update failed: " + error.message }, { status: 500 });
       }
     }

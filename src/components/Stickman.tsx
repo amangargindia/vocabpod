@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { cleanSvgString } from "@/lib/svgUtils";
 
 export type StickmanPose =
   | "standing" | "running" | "jumping" | "thinking" | "sitting"
@@ -166,7 +167,7 @@ export default function Stickman({ pose, className = "w-24 h-24", headColor = "v
     <svg viewBox="0 0 100 120" className={className} stroke="currentColor" fill="none" style={size ? { width: size, height: size } : undefined}>
       <circle cx="50" cy="20" r="10" fill={headColor} stroke="none" />
       {isCustom ? (
-        customSvg ? <g dangerouslySetInnerHTML={{ __html: customSvg }} /> : null
+        customSvg ? <g dangerouslySetInnerHTML={{ __html: cleanSvgString(customSvg) }} /> : null
       ) : (
         POSES[pose as StickmanPose]
       )}

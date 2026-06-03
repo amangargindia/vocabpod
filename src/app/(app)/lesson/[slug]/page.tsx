@@ -12,6 +12,7 @@ import dynamic from "next/dynamic";
 const Stickman = dynamic(() => import("@/components/Stickman"), { ssr: false });
 import Logo from "@/components/Logo";
 import Footer from "@/components/Footer";
+import { cleanSvgString } from "@/lib/svgUtils";
 
 // Recursive JSONB SVG Element Renderer
 interface SVGNode {
@@ -46,15 +47,28 @@ const DynamicSVGNode = ({ node }: { node: SVGNode }) => {
     sanitizedProps.className = sanitizedProps.class;
     delete sanitizedProps.class;
   }
+  
+  // Convert SVG properties from kebab-case to camelCase for React
+  const finalProps: Record<string, any> = {};
+  for (const key of Object.keys(sanitizedProps)) {
+    if (key.includes('-') && !key.startsWith('data-') && !key.startsWith('aria-')) {
+      const camelKey = key.replace(/-([a-z])/g, (_, g) => g.toUpperCase());
+      finalProps[camelKey] = sanitizedProps[key];
+    } else {
+      finalProps[key] = sanitizedProps[key];
+    }
+  }
 
   return (
-    <Tag {...sanitizedProps}>
+    <Tag {...finalProps}>
       {node.children?.map((child, idx) => (
         <DynamicSVGNode key={idx} node={child} />
       ))}
     </Tag>
   );
-};
+}
+
+
 
 function FloatingStickmen({ pose }: { pose: StickmanPose }) {
   const [positions, setPositions] = useState<{ top: string; left: string; scale: number; rotation: number; opacity: number }[]>([]);
@@ -257,7 +271,6 @@ export default function LessonPage({ params }: { params: any }) {
             userId: user.id,
             wordSlug: normalizedSlug,
             score,
-            wordLevel: (lesson as any).level ?? 1,
           }),
         });
         const data = await res.json();
@@ -440,17 +453,22 @@ export default function LessonPage({ params }: { params: any }) {
                 </svg>
                 <h3 className="text-xs md:text-sm font-black uppercase tracking-widest text-terracotta">Visual Mnemonic</h3>
               </div>
-              <div className="flex flex-col md:flex-row items-center space-y-6 md:space-y-0 md:space-x-8">
-                <div className="w-1/2 md:w-1/3 aspect-square shrink-0 rounded-2xl flex items-center justify-center relative bg-deep-canvas overflow-hidden">
+              <div className="flex flex-col items-center space-y-6">
+                <style>{`
+                  .svg-anim-smooth svg * {
+                     transition: all 0.3s ease-in-out;
+                  }
+                `}</style>
+                <div className="w-full aspect-square shrink-0 rounded-2xl flex items-center justify-center relative bg-deep-canvas overflow-hidden">
                   {lesson.custom_image_url ? (
                     <img src={lesson.custom_image_url} alt="Mnemonic" className="w-full h-full object-contain p-4 drop-shadow-xl" />
                   ) : lesson.custom_svg ? (
                     <div 
-                      className="w-full h-full p-4 flex items-center justify-center text-light-gray svg-mnemonic-container [&>svg]:w-full [&>svg]:h-full"
-                      dangerouslySetInnerHTML={{ __html: lesson.custom_svg }}
+                      className="w-full h-full p-4 flex items-center justify-center text-light-gray svg-mnemonic-container svg-anim-smooth [&>svg]:w-full [&>svg]:h-full"
+                      dangerouslySetInnerHTML={{ __html: cleanSvgString(lesson.custom_svg) }}
                     />
                   ) : lesson.svg_elements && lesson.svg_elements.length > 0 ? (
-                    <svg viewBox="0 0 400 300" className="w-full h-full p-4" xmlns="http://www.w3.org/2000/svg">
+                    <svg viewBox="0 0 400 300" className="w-full h-full p-4 svg-anim-smooth" xmlns="http://www.w3.org/2000/svg">
                       {lesson.svg_elements.map((node, index) => (
                         <DynamicSVGNode key={index} node={node} />
                       ))}
@@ -459,9 +477,15 @@ export default function LessonPage({ params }: { params: any }) {
                     <p className="text-xs text-muted-ash p-4 text-center">No visual anchor provided.</p>
                   )}
                 </div>
-                <div className="flex-1 space-y-3">
+                <div className="w-full text-center space-y-3">
                   <p className="text-sm md:text-base leading-relaxed text-light-gray/90 font-normal">
-                    {lesson.narrative}
+                    {lesson.narrative ? lesson.narrative.split(/(\*\*.*?\*\*)/g).map((part: string, index: number) => {
+                      if (part.startsWith("**") && part.endsWith("**")) {
+                        const boldText = part.slice(2, -2);
+                        return <strong key={index} className="text-terracotta font-black px-1 rounded">{boldText}</strong>;
+                      }
+                      return part;
+                    }) : "No narrative provided."}
                   </p>
                 </div>
               </div>
@@ -486,7 +510,7 @@ export default function LessonPage({ params }: { params: any }) {
                 <p className="flex-1 text-base md:text-lg leading-relaxed md:leading-loose text-muted-ash">
                   {(lesson as any).story ? (lesson as any).story.split(/(\*\*.*?\*\*)/g).map((part: string, index: number) => {
                     if (part.startsWith('**') && part.endsWith('**')) {
-                      return <strong key={index} className="font-bold text-light-gray">{part.slice(2, -2)}</strong>;
+                      return <strong key={index} className="font-bold text-terracotta">{part.slice(2, -2)}</strong>;
                     }
                     return part.split(new RegExp(`(${lesson.word})`, "gi")).map((subPart: string, subIndex: number) =>
                       subPart.toLowerCase() === lesson.word.toLowerCase()
@@ -514,11 +538,16 @@ export default function LessonPage({ params }: { params: any }) {
                     <div key={idx} className="space-y-2">
                       <h4 className="text-[10px] md:text-xs font-bold text-muted-ash uppercase tracking-wider bg-deep-canvas inline-block px-3 py-1 rounded-lg border border-white/5">{usage.context}</h4>
                       <p className="text-sm md:text-base leading-relaxed text-light-gray/90 mt-2 pl-1 border-l-2 border-terracotta/30">
-                        {usage.example.split(new RegExp(`(${lesson.word})`, "gi")).map((part: string, i: number) =>
-                          part.toLowerCase() === lesson.word.toLowerCase()
-                            ? <mark key={i} className="bg-transparent text-terracotta font-bold not-italic">{part}</mark>
-                            : part
-                        )}
+                        {usage.example.split(/(\*\*.*?\*\*)/g).map((part: string, index: number) => {
+                          if (part.startsWith("**") && part.endsWith("**")) {
+                            return <strong key={index} className="text-terracotta font-bold">{part.slice(2, -2)}</strong>;
+                          }
+                          return part.split(new RegExp(`(${lesson.word})`, "gi")).map((subPart: string, subIndex: number) =>
+                            subPart.toLowerCase() === lesson.word.toLowerCase()
+                              ? <mark key={`${index}-${subIndex}`} className="bg-transparent text-terracotta font-bold not-italic">{subPart}</mark>
+                              : subPart
+                          );
+                        })}
                       </p>
                     </div>
                   ))

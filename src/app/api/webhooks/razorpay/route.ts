@@ -35,13 +35,78 @@ export async function POST(req: Request) {
 
     const event = JSON.parse(rawBody);
 
-    // Handle payment.captured event
-    if (event.event === "payment.captured" || event.event === "order.paid") {
-      const payment = event.payload.payment.entity;
-      const notes = payment.notes; // We passed userId here during order creation
+    // Handle subscription events
+    if (event.event === "subscription.charged") {
+      const subscription = event.payload.subscription?.entity || {};
+      const payment = event.payload.payment?.entity || {};
+      const notes = subscription.notes?.userId ? subscription.notes : payment.notes;
 
       if (notes && notes.userId && adminSupabase) {
-        // Upsert into users_subscriptions table
+        if (notes.userId === "guest-registration") {
+          console.warn(`[URGENT] Webhook received for guest-registration email: ${notes.email}. User might have closed browser before account creation. Manual reconciliation required. Subscription ID: ${subscription.id}`);
+          return NextResponse.json({ received: true, warning: "Guest account pending verification" });
+        }
+
+        const renewsAt = subscription.current_end 
+          ? new Date(subscription.current_end * 1000).toISOString()
+          : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
+        const { error } = await adminSupabase
+          .from("users_subscriptions")
+          .upsert({
+            user_id: notes.userId,
+            razorpay_customer_id: subscription.customer_id || payment.customer_id || null,
+            razorpay_order_id: payment.order_id || null,
+            razorpay_subscription_id: subscription.id,
+            is_premium: true,
+            renews_at: renewsAt,
+            updated_at: new Date().toISOString()
+          }, {
+            onConflict: 'user_id'
+          });
+
+        if (error) {
+          console.error("Failed to update user subscription:", error);
+          return NextResponse.json({ error: "Database update failed" }, { status: 500 });
+        }
+      }
+    } else if (event.event === "subscription.cancelled" || event.event === "subscription.halted") {
+      const subscription = event.payload.subscription?.entity || {};
+      const notes = subscription.notes;
+
+      if (notes && notes.userId && adminSupabase) {
+        if (notes.userId === "guest-registration") {
+          return NextResponse.json({ received: true });
+        }
+
+        // Revoke premium access
+        const { error } = await adminSupabase
+          .from("users_subscriptions")
+          .update({
+            is_premium: false,
+            updated_at: new Date().toISOString()
+          })
+          .eq("user_id", notes.userId);
+
+        if (error) {
+          console.error("Failed to revoke user subscription:", error);
+          return NextResponse.json({ error: "Database update failed" }, { status: 500 });
+        }
+      }
+    } else if (event.event === "payment.failed") {
+       // Log failure, could also notify user here
+       console.warn("Payment failed for event:", event.payload.payment?.entity?.id);
+    } else if (event.event === "payment.captured" || event.event === "order.paid") {
+      // Fallback for one-time payments if any
+      const payment = event.payload.payment?.entity || {};
+      const notes = payment.notes;
+
+      if (notes && notes.userId && adminSupabase && !payment.subscription_id) {
+        if (notes.userId === "guest-registration") {
+          console.warn(`[URGENT] Webhook received for guest-registration email: ${notes.email}. User might have closed browser before account creation. Manual reconciliation required. Payment ID: ${payment.id}`);
+          return NextResponse.json({ received: true, warning: "Guest account pending verification" });
+        }
+        
         const { error } = await adminSupabase
           .from("users_subscriptions")
           .upsert({
@@ -51,10 +116,12 @@ export async function POST(req: Request) {
             is_premium: true,
             renews_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
             updated_at: new Date().toISOString()
+          }, {
+            onConflict: 'user_id'
           });
 
         if (error) {
-          console.error("Failed to update user subscription:", error);
+          console.error("Failed to update user subscription (one-time):", error);
           return NextResponse.json({ error: "Database update failed" }, { status: 500 });
         }
       }

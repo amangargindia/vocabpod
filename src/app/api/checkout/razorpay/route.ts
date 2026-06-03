@@ -78,6 +78,7 @@ export async function POST(req: Request) {
       id: subscription.id,
       amount: 9900,
       currency: "INR",
+      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
     });
   } catch (error: any) {
     console.error("Error creating Razorpay subscription:", error);

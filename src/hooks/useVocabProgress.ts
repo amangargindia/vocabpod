@@ -125,7 +125,7 @@ export function useVocabProgress(initialUserId?: string | null, isParentLoaded?:
     }
 
     loadProgress();
-  }, []);
+  }, [initialUserId, isParentLoaded]);
 
   // Save to localStorage whenever stats change (only after auth is resolved)
   useEffect(() => {

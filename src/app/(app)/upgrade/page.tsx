@@ -9,6 +9,8 @@ export default function UpgradePage() {
   const [user, setUser] = useState<{ id?: string, email?: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isPremium, setIsPremium] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     async function loadUser() {
@@ -27,6 +29,8 @@ export default function UpgradePage() {
   }, []);
 
   const handleCheckout = async () => {
+    setIsProcessing(true);
+    setError("");
     try {
       const res = await fetch("/api/checkout/razorpay", { 
         method: "POST",
@@ -39,8 +43,12 @@ export default function UpgradePage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
 
+      if (typeof (window as any).Razorpay === "undefined") {
+        throw new Error("Razorpay gateway is not loaded yet. Please wait a second and try again.");
+      }
+
       const options: any = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        key: data.key || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_SrJd1y0Lk6wJWM",
         name: "VocabPod",
         description: "Monthly Premium Subscription",
         subscription_id: data.id,
@@ -62,7 +70,13 @@ export default function UpgradePage() {
             window.location.href = "/upgrade/success";
           } catch (e: any) {
             console.error(e);
-            alert("Verification Failed: " + (e.message || e));
+            setError("Verification Failed: " + (e.message || e));
+            setIsProcessing(false);
+          }
+        },
+        modal: {
+          ondismiss: function() {
+            setIsProcessing(false);
           }
         },
         prefill: { email: user?.email },
@@ -70,10 +84,15 @@ export default function UpgradePage() {
       };
 
       const rzp = new (window as any).Razorpay(options);
+      rzp.on("payment.failed", function (response: any) {
+        setError("Payment Failed. Reason: " + response.error.description);
+        setIsProcessing(false);
+      });
       rzp.open();
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert("Failed to start checkout");
+      setError(err.message || "Failed to start checkout");
+      setIsProcessing(false);
     }
   };
 
@@ -92,7 +111,6 @@ export default function UpgradePage() {
 
   return (
     <div className="min-h-screen bg-absolute-black text-light-gray font-sans selection:bg-terracotta/20 selection:text-terracotta flex flex-col items-center justify-center md:p-6">
-      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="afterInteractive" />
 
       <div className="bg-card-gray border border-white/5 rounded-none md:rounded-3xl p-6 md:p-10 max-w-lg w-full min-h-screen md:min-h-0 flex flex-col justify-center text-center shadow-2xl relative overflow-hidden">
         <div className="absolute top-6 left-6 z-20">
@@ -111,11 +129,14 @@ export default function UpgradePage() {
           <span className="text-sm font-semibold text-terracotta">Per month</span>
         </div>
 
+        {error && <p className="text-terracotta text-sm mb-4 relative z-10">{error}</p>}
+
         <button 
           onClick={handleCheckout}
-          className="w-full bg-terracotta text-light-gray font-bold py-4 rounded-full text-lg tracking-wide hover:shadow-[0_0_30px_rgba(224,75,53,0.4)] hover:-translate-y-1 transition-all relative z-10 uppercase"
+          disabled={isProcessing}
+          className="w-full bg-terracotta text-light-gray font-bold py-4 rounded-full text-lg tracking-wide hover:shadow-[0_0_30px_rgba(224,75,53,0.4)] hover:-translate-y-1 transition-all relative z-10 uppercase disabled:opacity-50"
         >
-          Upgrade Now
+          {isProcessing ? "Processing..." : "Upgrade Now"}
         </button>
       </div>
     </div>

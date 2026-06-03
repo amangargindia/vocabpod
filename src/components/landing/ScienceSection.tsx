@@ -14,7 +14,7 @@ export default function ScienceSection() {
           <span className="text-xs font-bold uppercase tracking-widest text-terracotta border border-terracotta/20 rounded-full px-4 py-1">
             THE SCIENCE
           </span>
-          <h2 className="text-4xl md:text-5xl font-black text-light-gray tracking-tight mt-6">
+          <h2 className="text-5xl md:text-7xl font-black text-light-gray tracking-tight mt-6">
             {language === 'hi' ? "Roz 5 words. Yahi saccha secret hai." : "5 words a day. That's the whole secret."}
           </h2>
         </div>
@@ -107,10 +107,10 @@ export default function ScienceSection() {
               ? "Hum aapko words baar-baar dikhate hain taaki aap kabhi na bhoolein." 
               : "We show you words again and again to make sure you never forget."}
           </h3>
-          <p className="text-muted-ash mb-16 text-center max-w-2xl text-lg leading-relaxed">
+          <p className="text-muted-ash mb-16 text-center max-w-2xl text-sm md:text-base leading-relaxed">
             {language === 'hi'
-              ? "Traditional learning bahut passive hoti hai. Hamara Spaced Repetition System (SRS) track karta hai ki aapka dimaag word kab bhoolne wala hai, aur thik ussi waqt use yaad dilata hai."
-              : "Traditional learning is passive. Our Spaced Repetition System tracks exactly when your brain is about to forget a word, and brings it back to your attention right at that precise moment."}
+              ? "Ratta marna kaam nahi karta. Hamara Spaced Repetition System (SRS) track karta hai ki aap kab bhoolne wale hain, aur thik ussi waqt yaad dilata hai."
+              : "Passive learning fails. Our Spaced Repetition System (SRS) tracks exactly when you're about to forget, prompting a quick review at the perfect moment."}
           </p>
 
           {/* Ebbinghaus Forgetting Curve SVG Graphic */}

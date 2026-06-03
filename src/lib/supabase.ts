@@ -200,9 +200,9 @@ export async function getWordLesson(wordSlug: string): Promise<WordLesson> {
   return lessonData;
 }
 
-export async function getWordFeed() {
-  // If we have an in-memory cache, return it and refresh in background
-  if (cachedFeed) {
+export async function getWordFeed(forceRefresh = false) {
+  // If we have an in-memory cache and not forcing refresh, return it and refresh in background
+  if (cachedFeed && !forceRefresh) {
     if (supabase) {
       (async () => {
         try {
@@ -222,8 +222,8 @@ export async function getWordFeed() {
     return cachedFeed;
   }
 
-  // Try to load from localStorage first
-  if (typeof window !== "undefined") {
+  // Try to load from localStorage first if not forcing refresh
+  if (!forceRefresh && typeof window !== "undefined") {
     try {
       const local = localStorage.getItem("vocabpod_feed_cache");
       if (local) {
@@ -329,6 +329,16 @@ export async function getUserSubscription(forceRefresh = false) {
         if (Date.now() - timestamp < ONE_DAY) {
           return data;
         }
+      }
+    } catch(e) {}
+  }
+
+  // Handle server-side rendering natively without relative fetch
+  if (typeof window === "undefined" && supabase) {
+    try {
+      const { data, error } = await supabase.from("users_subscriptions").select("is_premium, renews_at").eq("user_id", user.id).single();
+      if (!error && data) {
+         return { is_premium: data.is_premium || false, renews_at: data.renews_at || null };
       }
     } catch(e) {}
   }

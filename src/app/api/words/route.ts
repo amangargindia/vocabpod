@@ -15,7 +15,7 @@ export async function GET() {
   }
   const { data, error } = await adminSupabase
     .from("words")
-    .select("id, word, definition, level, category, is_free_preview, created_at, audio_url, phonetic, type, narrative, stickman_id, story, quiz_questions, svg_elements, custom_image_url, custom_svg")
+    .select("id, word, definition, category, is_free_preview, created_at, audio_url, phonetic, type, narrative, stickman_id, story, quiz_questions, svg_elements, custom_image_url, custom_svg")
     .order("created_at", { ascending: false });
 
   if (error) return NextResponse.json({ words: [] });

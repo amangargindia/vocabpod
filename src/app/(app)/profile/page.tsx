@@ -161,8 +161,11 @@ export default function ProfilePage() {
     <div className="flex flex-col md:flex-row min-h-screen bg-absolute-black text-light-gray font-sans">
 <div className="flex-1 min-w-0 pb-[70px] md:pb-0">
         <header className="sticky top-0 z-30 backdrop-blur-md bg-absolute-black/80 border-b border-white/5 px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
-          <div className="flex flex-1 justify-start md:justify-center">
-            <Logo className="w-32 md:w-40 h-10 md:h-14" />
+          <div className="flex-1 flex justify-start"></div>
+          <div className="flex-1 flex justify-center shrink-0">
+            <Link href="/">
+              <Logo className="w-32 h-10 md:w-36 md:h-12" />
+            </Link>
           </div>
           <div className="flex-1 flex justify-end">
             <span className="text-[10px] md:text-xs text-muted-ash">Profile</span>

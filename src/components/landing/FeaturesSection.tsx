@@ -2,6 +2,7 @@
 
 import { Headphones, Eye, BookOpen, Clock, Globe, Trophy, MessageCircle, CheckCircle, Podcast } from "lucide-react";
 import { useLandingLanguage } from "@/contexts/LandingLanguageContext";
+import Link from "next/link";
 
 export default function FeaturesSection() {
   const { language } = useLandingLanguage();
@@ -73,7 +74,7 @@ export default function FeaturesSection() {
           <span className="text-xs font-bold uppercase tracking-widest text-terracotta border border-terracotta/20 rounded-full px-4 py-1">
             WHAT YOU GET
           </span>
-          <h2 className="text-4xl md:text-5xl font-black text-light-gray tracking-tight mt-6 max-w-2xl mx-auto">
+          <h2 className="text-5xl md:text-7xl font-black text-light-gray tracking-tight mt-6 max-w-4xl mx-auto">
             {language === 'hi' ? "Aap jo seekhenge, wo yaad kyu rahega?" : "Why you will retain what you learn"}
           </h2>
         </div>
@@ -134,7 +135,7 @@ export default function FeaturesSection() {
                    <p className="text-xs text-muted-ash mb-6">
                      {language === 'hi' ? "Sare sections unlock karne ke liye subscribe karein" : "Subscribe to unlock all sections"}
                    </p>
-                   <a href="#pricing" className="bg-terracotta text-white px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-terracotta/80 transition-colors">
+                   <a href="/checkout" className="bg-terracotta text-white px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-terracotta/80 transition-colors">
                      {language === 'hi' ? "Abhi Unlock Karein" : "Unlock Now"}
                    </a>
                 </div>

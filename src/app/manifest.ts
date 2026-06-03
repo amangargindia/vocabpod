@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: 'VocabPod',
     short_name: 'VocabPod',
     description: 'Master advanced vocabulary effortlessly',
-    start_url: '/journey',
+    start_url: '/dashboard',
     display: 'standalone',
     background_color: '#0A0A0A',
     theme_color: '#E04B35',

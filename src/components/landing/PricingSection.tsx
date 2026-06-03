@@ -72,12 +72,12 @@ export default function PricingSection() {
             </div>
 
             <div className="mt-12 text-center">
-              <Link 
+              <a 
                 href="/checkout"
                 className="block w-full bg-terracotta text-white font-bold py-5 rounded-full text-sm uppercase tracking-widest hover:shadow-[0_0_30px_rgba(224,75,53,0.5)] hover:-translate-y-0.5 transition-all text-center"
               >
                 {language === 'hi' ? "Abhi kharidein ₹99/mo mein" : "Buy Now for ₹99/mo"}
-              </Link>
+              </a>
               <p className="text-[10px] text-muted-ash uppercase tracking-widest mt-4">
                 {language === 'hi' ? "24-hour no questions asked money-back guarantee." : "24-hour no questions asked money-back guarantee."}
               </p>

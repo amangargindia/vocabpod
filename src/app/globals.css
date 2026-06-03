@@ -10,6 +10,8 @@
   --color-dark-blush: #3A1D1A;
   
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-lora: var(--font-lora), Georgia, serif;
+  --font-outfit: var(--font-outfit), sans-serif;
 }
 
 :root {
@@ -19,6 +21,7 @@
 
 html {
   scroll-behavior: smooth;
+  font-size: 115%; /* Zooms in all typography and spacing proportionally */
 }
 
 body {

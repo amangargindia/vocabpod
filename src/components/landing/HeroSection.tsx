@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useLandingLanguage } from "@/contexts/LandingLanguageContext";
 import Stickman from "@/components/Stickman";
 import { Check } from "lucide-react";
+import Link from "next/link";
 
 const VOCAB_SPECIALTIES = [
   {
@@ -103,7 +104,7 @@ export default function HeroSection() {
               Try a Free Demo
             </a>
             <a 
-              href="#pricing"
+              href="/checkout"
               className="border border-white/20 text-light-gray font-bold px-8 py-4 rounded-full text-sm uppercase tracking-widest text-center hover:border-white/40 transition-all"
             >
               Subscribe for 99/mo

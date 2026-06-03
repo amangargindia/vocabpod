@@ -5,6 +5,7 @@ import Link from "next/link";
 import Logo from "@/components/Logo";
 import { getUser } from "@/lib/supabase";
 import { useVocabProgress } from "@/hooks/useVocabProgress";
+import { useAuth } from "@/contexts/AuthContext";
 
 
 
@@ -60,10 +61,10 @@ export default function LeaderboardPage() {
   const [isRankingsLoading, setIsRankingsLoading] = useState(false);
   const [rankingsRequested, setRankingsRequested] = useState(false);
   const [isStatsLoading, setIsStatsLoading] = useState(true);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [totalXp, setTotalXp] = useState(0);
   const [xpHistory, setXpHistory] = useState<number[]>([0,0,0,0,0,0,0]);
-  const { stats, isLoaded } = useVocabProgress(currentUserId, !isStatsLoading);
+  const { user, isLoadingAuth } = useAuth();
+  const { stats, isLoaded } = useVocabProgress(user?.id, !isLoadingAuth);
 
   const currentStreak = isLoaded ? stats.currentStreak : 0;
   const totalWords = isLoaded ? stats.totalWordsLearned : 0;
@@ -71,8 +72,6 @@ export default function LeaderboardPage() {
   // Load profile stats immediately (fast)
   useEffect(() => {
     async function loadStats() {
-      const user = await getUser();
-      setCurrentUserId(user?.id ?? null);
       if (user?.id) {
         try {
           const profileRes = await fetch(`/api/profile?userId=${user.id}`);
@@ -85,8 +84,10 @@ export default function LeaderboardPage() {
       }
       setIsStatsLoading(false);
     }
-    loadStats();
-  }, []);
+    if (!isLoadingAuth) {
+      loadStats();
+    }
+  }, [isLoadingAuth, user?.id]);
 
   // Lazy-load community rankings only when that tab is first activated
   useEffect(() => {
@@ -116,9 +117,10 @@ export default function LeaderboardPage() {
 
         {/* Header */}
         <header className="sticky top-0 z-30 backdrop-blur-md bg-absolute-black/80 border-b border-white/5 px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
-          <div className="flex flex-1 justify-start md:justify-center">
+          <div className="flex-1 flex justify-start"></div>
+          <div className="flex-1 flex justify-center shrink-0">
             <Link href="/">
-              <Logo className="w-32 md:w-40 h-10 md:h-14" />
+              <Logo className="w-32 h-10 md:w-36 md:h-12" />
             </Link>
           </div>
           <div className="flex-1 flex justify-end">
@@ -284,7 +286,7 @@ export default function LeaderboardPage() {
                     {/* Full list */}
                     <div className="space-y-2 mt-4">
                       {leaderboard.map((entry, i) => {
-                        const isMe = entry.user_id === currentUserId;
+                        const isMe = entry.user_id === user?.id;
                         return (
                           <div
                             key={entry.user_id}

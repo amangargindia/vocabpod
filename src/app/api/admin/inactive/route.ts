@@ -21,41 +21,74 @@ export async function GET(req: Request) {
   }
 
   try {
-    // Get premium subscription user IDs
-    const { data: subs } = await adminSupabase
+    // 1. Get all subscription records
+    const { data: subs, error: subsError } = await adminSupabase
       .from("users_subscriptions")
-      .select("user_id")
-      .eq("is_premium", true);
+      .select("user_id, is_premium");
 
-    const premiumIds = (subs ?? []).map(s => s.user_id);
-    if (premiumIds.length === 0) return NextResponse.json({ users: [] });
+    if (subsError) throw subsError;
 
-    // Get profiles not active in last 2 days
-    const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
-    const { data: profiles } = await adminSupabase
-      .from("user_profiles")
-      .select("user_id, last_active_date, phone")
-      .in("user_id", premiumIds)
-      .or(`last_active_date.lt.${twoDaysAgo},last_active_date.is.null`);
-
-    if (!profiles || profiles.length === 0) return NextResponse.json({ users: [] });
-
-    // Fetch auth info for emails
-    const { data: authData } = await adminSupabase.auth.admin.listUsers();
-    const emailMap: Record<string, string> = {};
-    for (const u of authData?.users ?? []) {
-      emailMap[u.id] = u.email ?? "Unknown";
+    const subMap = new Map<string, boolean>();
+    for (const s of subs ?? []) {
+      subMap.set(s.user_id, s.is_premium);
     }
 
-    const users = profiles.map(p => ({
-      id: p.user_id,
-      email: emailMap[p.user_id] ?? "Unknown",
-      last_active_date: p.last_active_date,
-      phone: p.phone,
-    }));
+    // 2. Fetch profiles to get phone numbers and app-specific activity dates
+    const { data: profiles, error: profilesError } = await adminSupabase
+      .from("user_profiles")
+      .select("user_id, last_active_date, phone");
 
-    return NextResponse.json({ users });
+    if (profilesError) throw profilesError;
+
+    const profileMap = new Map<string, any>();
+    for (const p of profiles ?? []) {
+      profileMap.set(p.user_id, p);
+    }
+
+    // 3. Fetch auth users list for emails and last_sign_in_at timestamps
+    const { data: authData, error: authError } = await adminSupabase.auth.admin.listUsers();
+    if (authError) throw authError;
+
+    const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+    const inactiveUsersList: any[] = [];
+
+    // 4. Merge and evaluate inactivity for ALL users
+    for (const authUser of authData?.users ?? []) {
+      const isPremium = subMap.get(authUser.id) || false;
+      const profile = profileMap.get(authUser.id);
+      
+      // Determine the latest activity date
+      let lastActiveDate: Date | null = null;
+
+      if (profile?.last_active_date) {
+        lastActiveDate = new Date(profile.last_active_date);
+      }
+      
+      if (authUser.last_sign_in_at) {
+        const signInDate = new Date(authUser.last_sign_in_at);
+        if (!lastActiveDate || signInDate > lastActiveDate) {
+          lastActiveDate = signInDate;
+        }
+      }
+
+      // If no activity has ever been recorded, fall back to when the user was created
+      const computedActivity = lastActiveDate || new Date(authUser.created_at);
+
+      // Check if computed activity is older than 2 days
+      if (computedActivity < twoDaysAgo) {
+        inactiveUsersList.push({
+          id: authUser.id,
+          email: authUser.email || "Unknown",
+          last_active_date: computedActivity.toISOString(),
+          phone: profile?.phone || authUser.phone || null,
+          is_premium: isPremium,
+        });
+      }
+    }
+
+    return NextResponse.json({ users: inactiveUsersList });
   } catch (e: any) {
+    console.error("Inactive fetch error:", e);
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }

@@ -53,7 +53,7 @@ export async function POST(req: Request) {
     }
     const userId = user.id;
 
-    const { wordSlug, score, wordLevel } = await req.json();
+    const { wordSlug, score } = await req.json();
     if (!wordSlug) {
       return NextResponse.json({ error: "wordSlug required" }, { status: 400 });
     }
@@ -91,9 +91,8 @@ export async function POST(req: Request) {
     // first_completed_at being null means it has never been answered correctly before.
     const isFirstCompletion = passed && !existing?.first_completed_at;
 
-    // XP map by word level
-    const xpMap: Record<number, number> = { 1: 10, 2: 15, 3: 25 };
-    const xpEarned = isFirstCompletion ? (xpMap[wordLevel ?? 1] ?? 10) : 0;
+    // Flat 15 XP for completing a word
+    const xpEarned = isFirstCompletion ? 15 : 0;
 
     // Word is completed if it was ever answered correctly (persists through failed re-reviews)
     const isCompleted = passed || (existing?.is_completed ?? false);

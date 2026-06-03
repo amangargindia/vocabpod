@@ -20,12 +20,6 @@ const HomeIcon = () => (
   </svg>
 );
 
-const JourneyIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
-    <circle cx="12" cy="12" r="3" />
-    <path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12" />
-  </svg>
-);
 
 const FlashcardIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
@@ -85,7 +79,6 @@ const BugIcon = () => (
 
 const NAV_ITEMS: NavItem[] = [
   { href: "/dashboard", label: "Home", icon: <HomeIcon /> },
-  { href: "/journey", label: "Journey", icon: <JourneyIcon /> },
   { href: "/leaderboard", label: "Leaderboard", icon: <LeaderboardIcon /> },
   { href: "/autoplay", label: "Autoplay", icon: <AutoplayIcon /> },
   { href: "/flashcards", label: "Flashcards", icon: <FlashcardIcon /> },
@@ -164,13 +157,7 @@ export default function Sidebar() {
       >
         {/* Sidebar Toggle Area (Desktop Only) */}
         <div className="hidden md:flex items-center justify-between px-4 py-5 border-b border-white/5 w-full h-[73px] shrink-0">
-          <Link href="/" className="shrink-0 flex items-center justify-center">
-            {collapsed ? (
-              <Logo className="w-8 h-8" hideText={true} />
-            ) : (
-              <Logo className="w-32 h-10" />
-            )}
-          </Link>
+
           <button
             onClick={() => setCollapsed(p => !p)}
             className="w-8 h-8 flex items-center justify-center rounded-lg text-muted-ash hover:text-light-gray hover:bg-white/5 transition-colors ml-auto shrink-0"

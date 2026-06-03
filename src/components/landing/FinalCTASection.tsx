@@ -29,12 +29,12 @@ export default function FinalCTASection() {
             : "Join people like you who stopped forgetting and started speaking fluently."}
         </p>
 
-        <Link 
+        <a 
           href="/checkout"
           className="bg-terracotta text-light-gray font-bold px-12 py-5 rounded-full text-lg uppercase tracking-widest hover:shadow-[0_0_40px_rgba(224,75,53,0.6)] hover:-translate-y-1 transition-all flex items-center justify-center gap-3 group text-center"
         >
           {language === 'hi' ? "Abhi Subscribe Karein ₹99" : "Subscribe for ₹99"}
-        </Link>
+        </a>
 
         <div className="mt-8 flex items-center gap-6 text-sm text-white/80 font-bold uppercase tracking-widest">
           <span className="flex items-center gap-1"><Check className="w-4 h-4" /> {language === 'hi' ? "24-hr Money Back" : "24-hr Money Back"}</span>

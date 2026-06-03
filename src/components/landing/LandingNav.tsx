@@ -72,7 +72,7 @@ export default function LandingNav() {
                   Login
                 </Link>
                 <a
-                  href="#pricing"
+                  href="/checkout"
                   className="bg-terracotta text-light-gray px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest hover:-translate-y-0.5 hover:shadow-[0_0_20px_rgba(224,75,53,0.3)] transition-all"
                 >
                   {language === 'hi' ? "Subscribe Karein" : "Subscribe"}
@@ -81,13 +81,30 @@ export default function LandingNav() {
             )}
           </div>
 
-          {/* Mobile menu button */}
-          <button
-            className="md:hidden text-light-gray"
-            onClick={() => setMobileMenuOpen(true)}
-          >
-            <Menu size={24} />
-          </button>
+          {/* Mobile Actions: Login/Dashboard & Menu button */}
+          <div className="flex md:hidden items-center gap-5">
+            {user ? (
+              <Link
+                href="/dashboard"
+                className="text-xs font-bold uppercase tracking-widest text-light-gray hover:text-terracotta transition-colors"
+              >
+                Dashboard
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                className="text-xs font-bold uppercase tracking-widest text-muted-ash hover:text-light-gray transition-colors"
+              >
+                Login
+              </Link>
+            )}
+            <button
+              className="text-light-gray"
+              onClick={() => setMobileMenuOpen(true)}
+            >
+              <Menu size={24} />
+            </button>
+          </div>
         </div>
       </nav>
 
@@ -129,7 +146,7 @@ export default function LandingNav() {
             ) : (
               <>
                 <a
-                  href="#pricing"
+                  href="/checkout"
                   onClick={() => setMobileMenuOpen(false)}
                   className="w-full bg-terracotta text-center text-light-gray px-6 py-4 rounded-full text-sm font-bold uppercase tracking-widest"
                 >

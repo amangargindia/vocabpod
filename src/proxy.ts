@@ -100,6 +100,7 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
   const pathname = request.nextUrl.pathname;
   const isPublicRoute = 
     pathname === '/' || 
+    pathname === '/checkout' ||
     pathname === '/login' ||
     pathname === '/signin' || 
     pathname === '/about' || 
@@ -108,7 +109,6 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
     pathname === '/features' || 
     pathname === '/upgrade' ||
     pathname === '/upgrade/success' ||
-    pathname === '/journey' ||
     pathname === '/leaderboard' ||
     pathname.startsWith('/api/');
 
@@ -136,7 +136,7 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
 
   if (user && pathname === '/') {
     const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = '/journey';
+    redirectUrl.pathname = '/dashboard';
     return NextResponse.redirect(redirectUrl);
   }
 

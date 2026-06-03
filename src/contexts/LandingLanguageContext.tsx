@@ -12,7 +12,7 @@ interface LandingLanguageContextType {
 const LandingLanguageContext = createContext<LandingLanguageContextType | undefined>(undefined);
 
 export function LandingLanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguage] = useState<Language>("en");
+  const [language, setLanguage] = useState<Language>("hi");
   
   return (
     <LandingLanguageContext.Provider value={{ language, setLanguage }}>
