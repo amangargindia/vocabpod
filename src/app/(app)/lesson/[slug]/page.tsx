@@ -345,6 +345,14 @@ export default function LessonPage({ params }: { params: any }) {
   // ── Toast State ──────────────────────────────────────────────────────────────
   const [toast, setToast] = useState<{ message: string; type: "info" | "success" | "error" } | null>(null);
   const [showSwipeHint, setShowSwipeHint] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)');
+    setIsMobile(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
 
   // ── Admin State ──────────────────────────────────────────────────────────────
   const isAdmin = !!(
@@ -1113,7 +1121,7 @@ export default function LessonPage({ params }: { params: any }) {
   return (
     <div
       {...swipeHandlers}
-      className="flex flex-col h-[100dvh] bg-absolute-black text-light-gray select-none relative overflow-hidden"
+      className="flex flex-col bg-absolute-black text-light-gray select-none relative" style={{ minHeight: '100dvh' }}
     >
       <FloatingStickmen pose="standing" />
 
@@ -1146,7 +1154,7 @@ export default function LessonPage({ params }: { params: any }) {
       </nav>
 
       {/* Main Viewport Container */}
-      <main className="flex-1 flex flex-col overflow-hidden relative">
+      <main className="flex-1 flex flex-col overflow-hidden relative" style={{ minHeight: 0 }}>
         {/* Persistent/Sticky Top Progress Bar */}
         <div className="w-full bg-absolute-black/95 border-b border-white/5 py-3 shrink-0 z-30">
           <div className="max-w-2xl mx-auto px-4 space-y-2.5">
@@ -1192,12 +1200,12 @@ export default function LessonPage({ params }: { params: any }) {
                   </svg>
                 </button>
 
-                {/* Floating Tooltip Bubble */}
+              {/* Floating Tooltip Bubble — opens downward, below progress bar */}
                 {showSwipeHint && (
-                  <div className="absolute right-0 top-8 z-50 bg-card-gray border border-white/10 text-light-gray px-4 py-3 rounded-xl shadow-2xl text-xs font-semibold w-52 text-center animate-in fade-in slide-in-from-top-2 duration-200 normal-case">
+                  <div className="absolute right-0 top-full mt-2 z-50 bg-card-gray border border-white/10 text-light-gray px-4 py-3 rounded-xl shadow-2xl text-xs font-semibold w-52 text-center animate-in fade-in slide-in-from-top-2 duration-200 normal-case">
                     <div className="absolute top-[-5px] right-3.5 w-2.5 h-2.5 bg-card-gray border-t border-l border-white/10 rotate-45" />
                     <div className="flex flex-col gap-2">
-                      <span className="text-left leading-normal font-medium text-light-gray">💡 Quick Tips:</span>
+                      <span className="text-left leading-normal font-medium text-light-gray">Quick Tips</span>
                       <ul className="text-left space-y-1 list-disc pl-3 text-muted-ash text-[10px] leading-normal font-normal">
                         <li>Swipe anywhere on screen to navigate cards.</li>
                         <li>Click + / - to resize page text.</li>
@@ -1262,12 +1270,12 @@ export default function LessonPage({ params }: { params: any }) {
         </div>
 
         {/* Scrollable Card Area */}
-        <div className="flex-1 overflow-y-auto py-6 md:py-8 flex flex-col justify-center">
+        <div className="flex-1 overflow-y-auto py-4 md:py-6 flex flex-col justify-center">
           <div className="w-full max-w-2xl mx-auto px-4 relative flex items-center min-h-[300px]">
             {/* Card Content Container */}
             <div className="flex-1 overflow-hidden relative">
               <div
-                className="bg-card-gray border border-white/5 rounded-3xl p-6 md:p-8 shadow-2xl overflow-hidden relative"
+                className="bg-card-gray border border-white/5 rounded-3xl p-5 md:p-8 shadow-2xl overflow-hidden relative"
                 style={getSlideStyle()}
               >
                 {cardRenderers[currentCard]?.()}
@@ -1276,8 +1284,11 @@ export default function LessonPage({ params }: { params: any }) {
           </div>
         </div>
 
-        {/* Persistent Bottom Control Bar */}
-        <div className="w-full bg-absolute-black/95 border-t border-white/5 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shrink-0 z-30 shadow-2xl">
+        {/* Persistent Bottom Control Bar — z-[60] sits above sidebar z-50. On mobile, pb clears the 70px bottom nav. */}
+        <div
+          className="w-full bg-absolute-black/95 border-t border-white/10 pt-3 shrink-0 z-[60] shadow-[0_-8px_32px_rgba(0,0,0,0.5)]"
+          style={{ paddingBottom: isMobile ? 'calc(70px + max(0px, env(safe-area-inset-bottom)))' : 'max(0.75rem, env(safe-area-inset-bottom))' }}
+        >
           <div className="max-w-2xl mx-auto px-4 space-y-3">
             {/* Persistent Audio Player */}
             <div className="bg-card-gray/90 backdrop-blur-md border border-white/5 shadow-lg rounded-2xl p-3.5 flex items-center justify-between gap-4 relative overflow-hidden transition-all duration-300">

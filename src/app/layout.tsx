@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Lora, Outfit } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
+import PWAManager from "@/components/PWAManager";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -62,10 +63,17 @@ export default async function RootLayout({
       <head>
         <meta name="darkreader-lock" />
         <link rel="preconnect" href="https://checkout.razorpay.com" />
+        {/* Apple PWA meta tags */}
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="VocabPod" />
+        <link rel="apple-touch-icon" href="/icon-192" />
+        <link rel="apple-touch-startup-image" href="/icon-512" />
       </head>
       <body className={`flex flex-col md:flex-row min-h-full bg-absolute-black text-light-gray ${inter.className}`}>
         <AuthProvider>
           {children}
+          <PWAManager />
         </AuthProvider>
       </body>
     </html>
