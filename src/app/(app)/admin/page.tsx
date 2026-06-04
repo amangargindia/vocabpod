@@ -249,6 +249,27 @@ export default function AdminPortal() {
     localStorage.removeItem("vocabpod_editor_recovery");
   };
 
+  // Cloud sync helper for drafts
+  const saveDraftToCloud = async (draft: any) => {
+    try {
+      await fetch('/api/admin/drafts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(draft)
+      });
+    } catch (e) {
+      console.warn('Draft cloud sync failed, using localStorage fallback:', e);
+    }
+  };
+
+  const deleteDraftFromCloud = async (word: string) => {
+    try {
+      await fetch(`/api/admin/drafts?word=${encodeURIComponent(word)}`, { method: 'DELETE' });
+    } catch (e) {
+      console.warn('Draft delete cloud sync failed:', e);
+    }
+  };
+
   // Security Check
   useEffect(() => {
     async function checkAuth() {
@@ -280,13 +301,27 @@ export default function AdminPortal() {
   }, []);
 
   useEffect(() => {
-    const savedDrafts = localStorage.getItem('vocabpod_drafts');
-    if (savedDrafts) {
+    // Load from cloud first, fall back to localStorage
+    async function loadDrafts() {
       try {
-        setDrafts(JSON.parse(savedDrafts));
-      } catch(e) {}
+        const res = await fetch('/api/admin/drafts');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.drafts && data.drafts.length > 0) {
+            setDrafts(data.drafts);
+            localStorage.setItem('vocabpod_drafts', JSON.stringify(data.drafts));
+            return;
+          }
+        }
+      } catch (e) {}
+      // Fallback to localStorage
+      const savedDrafts = localStorage.getItem('vocabpod_drafts');
+      if (savedDrafts) {
+        try { setDrafts(JSON.parse(savedDrafts)); } catch(e) {}
+      }
     }
-  }, []);
+    loadDrafts();
+  }, [isAuthorized]);
 
   // Restore active editor session on mount
   useEffect(() => {
@@ -380,6 +415,7 @@ export default function AdminPortal() {
     
     setDrafts(newDrafts);
     localStorage.setItem('vocabpod_drafts', JSON.stringify(newDrafts));
+    saveDraftToCloud(currentDraft);
     setPopupMessage({ text: `Draft "${word}" saved successfully!`, type: "success" });
   };
 
@@ -408,10 +444,12 @@ export default function AdminPortal() {
   };
 
   const deleteDraft = (id: string) => {
+    const draftToDelete = drafts.find(d => d.id === id);
     const newDrafts = drafts.filter(d => d.id !== id);
     setDrafts(newDrafts);
     localStorage.setItem('vocabpod_drafts', JSON.stringify(newDrafts));
-    setPopupMessage({ text: "Draft deleted successfully!", type: "success" });
+    if (draftToDelete?.word) deleteDraftFromCloud(draftToDelete.word);
+    setPopupMessage({ text: "Draft deleted.", type: "success" });
   };
 
   const moveDraft = (id: string, direction: 'left' | 'right') => {
@@ -428,6 +466,8 @@ export default function AdminPortal() {
     });
     setDrafts(newDrafts);
     localStorage.setItem('vocabpod_drafts', JSON.stringify(newDrafts));
+    const movedDraft = newDrafts.find(d => d.id === id);
+    if (movedDraft) saveDraftToCloud(movedDraft);
   };
 
   const updateDraftStatus = (id: string, newStatus: string) => {
@@ -439,6 +479,8 @@ export default function AdminPortal() {
     });
     setDrafts(newDrafts);
     localStorage.setItem('vocabpod_drafts', JSON.stringify(newDrafts));
+    const updatedDraft = newDrafts.find(d => d.id === id);
+    if (updatedDraft) saveDraftToCloud(updatedDraft);
     setPopupMessage({ text: `Draft moved to ${newStatus.toUpperCase()}`, type: "success" });
   };
 
@@ -791,6 +833,15 @@ export default function AdminPortal() {
       await insertWordLesson(payload);
 
       fetchStorageStats();
+
+      // Remove this word from drafts pipeline now that it's published
+      if (editorMode.type === 'draft' && editorMode.word) {
+        const wordToRemove = editorMode.word;
+        const newDrafts = drafts.filter(d => d.word?.toLowerCase() !== wordToRemove.toLowerCase());
+        setDrafts(newDrafts);
+        localStorage.setItem('vocabpod_drafts', JSON.stringify(newDrafts));
+        deleteDraftFromCloud(wordToRemove);
+      }
       
       setPopupMessage({ text: `Word "${word}" lesson inserted successfully!`, type: "success" });
       
@@ -1112,16 +1163,19 @@ export default function AdminPortal() {
                             e.preventDefault();
                             if (!quickAddWord.trim()) return;
                             const newDraft = {
-                              id: "", word: "", phonetic: "", type: "noun", definition: "", narrative: "", story: "", realLifeUsages: [{context: "", example: ""}],
+                              id: Date.now().toString(),
+                              word: quickAddWord.trim(),
+                              phonetic: "", type: "noun", definition: "", narrative: "", story: "", realLifeUsages: [{context: "", example: ""}],
                               svgJson: "", customSvg: "",
                               question: "", opt1: "", opt2: "", opt3: "", opt4: "", correctOpt: 1, explanation: "",
                               status: "idea"
                             };
+                            saveDraftToCloud(newDraft);
                             const newDrafts = [...drafts, newDraft];
                             setDrafts(newDrafts);
                             localStorage.setItem('vocabpod_drafts', JSON.stringify(newDrafts));
                             setQuickAddWord("");
-                            setPopupMessage({ text: `Draft "${newDraft.word}" added successfully!`, type: "success" });
+                            setPopupMessage({ text: `Draft "${newDraft.word}" added to pipeline!`, type: "success" });
                           }}
                           className="flex gap-2 mb-2"
                         >
@@ -1146,8 +1200,8 @@ export default function AdminPortal() {
                               <h4 className="font-bold text-light-gray text-sm break-words">{d.word}</h4>
                             </div>
 
-                            <div className="flex justify-between items-center pt-2 border-t border-white/5">
-                              <div className="flex gap-1">
+                            <div className="flex flex-wrap gap-1.5 justify-between items-center pt-2 border-t border-white/5">
+                              <div className="flex gap-1 shrink-0">
                                 {col.status !== 'idea' && (
                                   <button
                                     onClick={() => moveDraft(d.id, 'left')}
@@ -1168,20 +1222,20 @@ export default function AdminPortal() {
                                 )}
                               </div>
 
-                              <div className="flex gap-2">
+                              <div className="flex gap-1.5 flex-wrap justify-end">
                                 <button
                                   onClick={() => {
                                     loadDraft(d);
                                     setIsRecordingMode(true);
                                   }}
-                                  className="text-[10px] font-bold text-white bg-terracotta/20 hover:bg-terracotta px-2 py-0.5 rounded transition-colors uppercase tracking-wider flex items-center gap-1"
+                                  className="text-[10px] font-bold text-white bg-terracotta/20 hover:bg-terracotta px-2 py-0.5 rounded transition-colors uppercase tracking-wider flex items-center gap-1 whitespace-nowrap"
                                 >
                                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3 h-3"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
                                   Record
                                 </button>
                                 <button
                                   onClick={() => loadDraft(d)}
-                                  className="text-[10px] font-bold text-terracotta hover:underline uppercase tracking-wider"
+                                  className="text-[10px] font-bold text-terracotta hover:underline uppercase tracking-wider whitespace-nowrap"
                                 >
                                   Load
                                 </button>
@@ -1191,7 +1245,7 @@ export default function AdminPortal() {
                                       deleteDraft(d.id);
                                     }
                                   }}
-                                  className="text-[10px] font-bold text-dark-blush hover:text-terracotta uppercase tracking-wider transition-colors"
+                                  className="text-[10px] font-bold text-dark-blush hover:text-terracotta uppercase tracking-wider transition-colors whitespace-nowrap"
                                 >
                                   Delete
                                 </button>
@@ -2335,6 +2389,8 @@ export default function AdminPortal() {
                   const newDrafts = drafts.map(d => d.id === editorMode.id ? { ...d, timestamps: ts } : d);
                   setDrafts(newDrafts);
                   localStorage.setItem('vocabpod_drafts', JSON.stringify(newDrafts));
+                  const syncedDraft = newDrafts.find(d => d.id === editorMode.id);
+                  if (syncedDraft) saveDraftToCloud(syncedDraft);
                 }
               }}
             />
