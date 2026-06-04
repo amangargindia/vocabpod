@@ -1131,27 +1131,11 @@ export default function LessonPage({ params }: { params: any }) {
 
           {/* Progress Bar */}
           <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs font-bold uppercase tracking-widest">
-              <button
-                onClick={() => canGoPrev && navigateTo("right")}
-                disabled={!canGoPrev}
-                className={`transition-colors ${canGoPrev ? "text-muted-ash hover:text-light-gray" : "text-white/10 cursor-not-allowed"}`}
-                aria-label="Previous card"
-              >
-                ←
-              </button>
-              <span className="text-muted-ash">
+            <div className="flex items-center justify-center text-xs font-bold uppercase tracking-widest text-muted-ash">
+              <span>
                 Step {currentCard + 1} of {TOTAL_CARDS} &nbsp;·&nbsp;{" "}
                 <span className="text-light-gray">{lesson.word}</span>
               </span>
-              <button
-                onClick={() => canGoNext && navigateTo("left")}
-                disabled={!canGoNext}
-                className={`transition-colors ${canGoNext ? "text-muted-ash hover:text-light-gray" : "text-white/10 cursor-not-allowed"}`}
-                aria-label="Next card"
-              >
-                →
-              </button>
             </div>
             <div className="bg-white/5 rounded-full h-2.5 overflow-hidden relative border border-white/5 shadow-inner">
               <div
@@ -1194,15 +1178,50 @@ export default function LessonPage({ params }: { params: any }) {
             </div>
           </div>
 
-          {/* Card Area */}
-          <div className="flex-1 overflow-hidden relative">
-            <div
-              {...swipeHandlers}
-              className="bg-card-gray border border-white/5 rounded-3xl p-6 md:p-8 shadow-2xl overflow-hidden relative"
-              style={getSlideStyle()}
+          {/* Card Area with Side Floating Buttons */}
+          <div className="flex-1 relative flex items-center">
+            {/* Left Floating Arrow Button */}
+            <button
+              onClick={() => navigateTo("right")}
+              disabled={!canGoPrev}
+              className={`absolute left-2 md:left-[-60px] z-30 w-11 h-11 rounded-full border flex items-center justify-center transition-all bg-card-gray/90 backdrop-blur-sm shadow-xl ${
+                canGoPrev
+                  ? "border-white/10 text-light-gray hover:border-terracotta/50 hover:bg-white/5 hover:scale-105"
+                  : "border-white/5 text-muted-ash/20 cursor-not-allowed opacity-30"
+              }`}
+              aria-label="Previous card"
             >
-              {cardRenderers[currentCard]?.()}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+
+            {/* Card Content Container */}
+            <div className="flex-1 overflow-hidden relative">
+              <div
+                {...swipeHandlers}
+                className="bg-card-gray border border-white/5 rounded-3xl p-6 md:p-8 shadow-2xl overflow-hidden relative"
+                style={getSlideStyle()}
+              >
+                {cardRenderers[currentCard]?.()}
+              </div>
             </div>
+
+            {/* Right Floating Arrow Button */}
+            <button
+              onClick={() => navigateTo("left")}
+              disabled={!canGoNext}
+              className={`absolute right-2 md:right-[-60px] z-30 w-11 h-11 rounded-full border flex items-center justify-center transition-all shadow-xl ${
+                canGoNext
+                  ? "bg-terracotta border-terracotta text-white hover:scale-105 hover:shadow-[0_0_15px_rgba(224,75,53,0.4)]"
+                  : "bg-white/5 border-white/5 text-muted-ash/20 cursor-not-allowed opacity-30"
+              }`}
+              aria-label="Next card"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
           </div>
 
           {/* Persistent Audio Player */}
