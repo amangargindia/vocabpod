@@ -1113,7 +1113,7 @@ export default function LessonPage({ params }: { params: any }) {
   return (
     <div
       {...swipeHandlers}
-      className="flex flex-col h-screen bg-absolute-black text-light-gray select-none relative overflow-hidden"
+      className="flex flex-col h-[100dvh] bg-absolute-black text-light-gray select-none relative overflow-hidden"
     >
       <FloatingStickmen pose="standing" />
 
@@ -1264,22 +1264,6 @@ export default function LessonPage({ params }: { params: any }) {
         {/* Scrollable Card Area */}
         <div className="flex-1 overflow-y-auto py-6 md:py-8 flex flex-col justify-center">
           <div className="w-full max-w-2xl mx-auto px-4 relative flex items-center min-h-[300px]">
-            {/* Left Floating Arrow Button */}
-            <button
-              onClick={() => navigateTo("right")}
-              disabled={!canGoPrev}
-              className={`absolute left-2 md:left-[-60px] z-30 w-11 h-11 rounded-full border flex items-center justify-center transition-all bg-card-gray/90 backdrop-blur-sm shadow-xl ${
-                canGoPrev
-                  ? "border-white/10 text-light-gray hover:border-terracotta/50 hover:bg-white/5 hover:scale-105"
-                  : "border-white/5 text-muted-ash/20 cursor-not-allowed opacity-30"
-              }`}
-              aria-label="Previous card"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-5 h-5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-
             {/* Card Content Container */}
             <div className="flex-1 overflow-hidden relative">
               <div
@@ -1289,28 +1273,12 @@ export default function LessonPage({ params }: { params: any }) {
                 {cardRenderers[currentCard]?.()}
               </div>
             </div>
-
-            {/* Right Floating Arrow Button */}
-            <button
-              onClick={() => navigateTo("left")}
-              disabled={!canGoNext}
-              className={`absolute right-2 md:right-[-60px] z-30 w-11 h-11 rounded-full border flex items-center justify-center transition-all shadow-xl ${
-                canGoNext
-                  ? "bg-terracotta border-terracotta text-white hover:scale-105 hover:shadow-[0_0_15px_rgba(224,75,53,0.4)]"
-                  : "bg-white/5 border-white/5 text-muted-ash/20 cursor-not-allowed opacity-30"
-              }`}
-              aria-label="Next card"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-5 h-5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
           </div>
         </div>
 
         {/* Persistent Bottom Control Bar */}
-        <div className="w-full bg-absolute-black/95 border-t border-white/5 py-4 pb-6 shrink-0 z-30 shadow-2xl">
-          <div className="max-w-2xl mx-auto px-4 space-y-3.5">
+        <div className="w-full bg-absolute-black/95 border-t border-white/5 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shrink-0 z-30 shadow-2xl">
+          <div className="max-w-2xl mx-auto px-4 space-y-3">
             {/* Persistent Audio Player */}
             <div className="bg-card-gray/90 backdrop-blur-md border border-white/5 shadow-lg rounded-2xl p-3.5 flex items-center justify-between gap-4 relative overflow-hidden transition-all duration-300">
               {!isPremium ? (
