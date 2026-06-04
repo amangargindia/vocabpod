@@ -49,10 +49,17 @@ export function useVocabProgress(initialUserId?: string | null, isParentLoaded?:
         const saved = localStorage.getItem(storageKey);
         if (saved) {
           try {
-            setStats(JSON.parse(saved));
+            const parsed = JSON.parse(saved);
+            if (parsed && typeof parsed === "object" && Array.isArray(parsed.progressList)) {
+              setStats(parsed);
+            } else {
+              setStats(DEFAULT_STATS);
+            }
             setIsLoaded(true);
           } catch (e) {
             console.error("Failed to parse initial local progress", e);
+            setStats(DEFAULT_STATS);
+            setIsLoaded(true);
           }
         }
       }
@@ -72,10 +79,17 @@ export function useVocabProgress(initialUserId?: string | null, isParentLoaded?:
         const saved = localStorage.getItem(storageKey);
         if (saved) {
           try {
-            setStats(JSON.parse(saved));
+            const parsed = JSON.parse(saved);
+            if (parsed && typeof parsed === "object" && Array.isArray(parsed.progressList)) {
+              setStats(parsed);
+            } else {
+              setStats(DEFAULT_STATS);
+            }
             setIsLoaded(true);
           } catch (e) {
             console.error("Failed to parse local progress for user", e);
+            setStats(DEFAULT_STATS);
+            setIsLoaded(true);
           }
         } else {
           setStats(DEFAULT_STATS);

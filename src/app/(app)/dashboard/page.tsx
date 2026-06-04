@@ -32,7 +32,10 @@ export default function Dashboard() {
           const cached = localStorage.getItem("vocabpod_feed_cache");
           if (cached) {
             try {
-              setFeed(JSON.parse(cached));
+              const parsed = JSON.parse(cached);
+              if (Array.isArray(parsed)) {
+                setFeed(parsed);
+              }
             } catch (e) {}
           }
         }
