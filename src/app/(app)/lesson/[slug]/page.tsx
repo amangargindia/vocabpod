@@ -148,6 +148,18 @@ function ConfettiParticles() {
           80% { opacity: 0.8; }
           100% { transform: translateY(-120%) rotate(720deg); opacity: 0; }
         }
+        @keyframes bounce-bar {
+          0%, 100% { height: 4px; }
+          50% { height: 16px; }
+        }
+        @keyframes sweep {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+        @keyframes pulse-glow {
+          0%, 100% { filter: drop-shadow(0 0 4px rgba(224, 75, 53, 0.4)); }
+          50% { filter: drop-shadow(0 0 10px rgba(224, 75, 53, 0.8)); }
+        }
       `}</style>
       {particles.map((_, i) => (
         <div
@@ -569,7 +581,8 @@ export default function LessonPage({ params }: { params: any }) {
 
   const activeQuiz = lesson.quiz_questions[0];
   const isAccessible = isPremium || (lesson as any).is_free_preview;
-  const progressPct = Math.round(((currentCard + 1) / TOTAL_CARDS) * 100);
+  const PROGRESS_ILLUSION_STEPS = [25, 43, 58, 72, 84, 94, 100];
+  const progressPct = PROGRESS_ILLUSION_STEPS[currentCard] || 0;
 
   const CARD_LABELS = ["Word", "Meaning", "Story", "Mnemonic", "Usage", "Quiz", "Complete"];
 
@@ -622,52 +635,12 @@ export default function LessonPage({ params }: { params: any }) {
             <p className="text-xl md:text-2xl text-muted-ash italic font-sans">{lesson.phonetic}</p>
           </div>
 
-          {/* Audio Player */}
-          <div className="bg-deep-canvas p-4 md:p-5 rounded-2xl border border-white/5 flex flex-col space-y-3 relative overflow-hidden max-w-sm mx-auto w-full">
-            {!isPremium && (
-              <div className="absolute inset-0 z-10 bg-absolute-black/60 backdrop-blur-sm flex flex-col items-center justify-center gap-2">
-                <span className="text-[10px] font-bold text-terracotta bg-dark-blush px-3 py-1 rounded-full uppercase tracking-widest border border-terracotta/20">
-                  Premium Feature
-                </span>
-                <Link href="/upgrade" className="text-xs font-semibold text-light-gray hover:text-white transition-colors">
-                  Upgrade to unlock
-                </Link>
-              </div>
-            )}
-            <div className="flex items-center gap-4">
-              <button
-                onClick={togglePlay}
-                className="w-10 h-10 md:w-12 md:h-12 shrink-0 rounded-full bg-terracotta text-light-gray flex items-center justify-center transition-all hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(224,75,53,0.4)]"
-              >
-                {isPlaying ? (
-                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                    <rect x="6" y="4" width="4" height="16" rx="1" />
-                    <rect x="14" y="4" width="4" height="16" rx="1" />
-                  </svg>
-                ) : (
-                  <svg className="w-4 h-4 fill-current translate-x-[2px]" viewBox="0 0 24 24">
-                    <path d="M8 5v14l11-7z" />
-                  </svg>
-                )}
-              </button>
-              <div className="flex-1 space-y-1">
-                <input
-                  type="range"
-                  min="0"
-                  max={duration || 100}
-                  value={currentTime}
-                  onChange={handleProgressBarChange}
-                  className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-terracotta focus:outline-none"
-                />
-                <div className="flex justify-between text-[10px] text-muted-ash">
-                  <span>{formatTime(currentTime)}</span>
-                  <span>{formatTime(duration)}</span>
-                </div>
-              </div>
-            </div>
+          <div className="text-center">
+            <span className="inline-flex items-center gap-1.5 text-xs text-muted-ash bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
+              <span>🎧</span>
+              {isPremium ? "Audio narration loaded below" : "Audio narration available below"}
+            </span>
           </div>
-
-          <p className="text-[10px] text-muted-ash text-center">🎧 Premium members get full audio narration</p>
         </>
       )}
     </div>
@@ -1180,11 +1153,22 @@ export default function LessonPage({ params }: { params: any }) {
                 →
               </button>
             </div>
-            <div className="bg-white/5 rounded-full h-1.5 overflow-hidden">
+            <div className="bg-white/5 rounded-full h-2.5 overflow-hidden relative border border-white/5 shadow-inner">
               <div
-                className="bg-terracotta rounded-full h-full transition-all duration-700"
-                style={{ width: `${progressPct}%` }}
-              />
+                className="bg-gradient-to-r from-terracotta to-[#f97316] rounded-full h-full transition-all duration-700 relative"
+                style={{
+                  width: `${progressPct}%`,
+                  animation: "pulse-glow 2s infinite ease-in-out"
+                }}
+              >
+                {/* Fast sweeping shimmer line */}
+                <div 
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                  style={{
+                    animation: "sweep 1.8s infinite linear"
+                  }}
+                />
+              </div>
             </div>
             {/* Step dots */}
             <div className="flex items-center justify-center gap-1.5">
@@ -1219,6 +1203,63 @@ export default function LessonPage({ params }: { params: any }) {
             >
               {cardRenderers[currentCard]?.()}
             </div>
+          </div>
+
+          {/* Persistent Audio Player */}
+          <div className="bg-card-gray/90 backdrop-blur-md border border-white/5 shadow-2xl rounded-2xl p-3.5 flex items-center justify-between gap-4 relative overflow-hidden transition-all duration-300">
+            {!isPremium ? (
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">🎧</span>
+                  <span className="text-xs text-muted-ash font-medium">Narration is a Premium feature</span>
+                </div>
+                <Link
+                  href="/upgrade"
+                  className="bg-terracotta hover:bg-terracotta/90 text-white text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-xl transition-all"
+                >
+                  Unlock
+                </Link>
+              </div>
+            ) : (
+              <>
+                <button
+                  onClick={togglePlay}
+                  className="w-10 h-10 shrink-0 rounded-full bg-terracotta text-white flex items-center justify-center transition-all hover:scale-105 hover:shadow-[0_0_15px_rgba(224,75,53,0.4)]"
+                  title={isPlaying ? "Pause narration" : "Play narration"}
+                >
+                  {isPlaying ? (
+                    <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                      <rect x="6" y="4" width="4" height="16" rx="1" />
+                      <rect x="14" y="4" width="4" height="16" rx="1" />
+                    </svg>
+                  ) : (
+                    <svg className="w-3.5 h-3.5 fill-current translate-x-[1px]" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                  )}
+                </button>
+                <div className="flex-1 flex items-center gap-3">
+                  <input
+                    type="range"
+                    min="0"
+                    max={duration || 100}
+                    value={currentTime}
+                    onChange={handleProgressBarChange}
+                    className="flex-1 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-terracotta focus:outline-none"
+                  />
+                  <span className="text-[10px] text-muted-ash shrink-0 font-mono">
+                    {formatTime(currentTime)} / {formatTime(duration)}
+                  </span>
+                </div>
+                {/* Audio Visualizer Waves */}
+                <div className="flex items-end gap-[3px] h-4 w-6 shrink-0 justify-center">
+                  <span className={`w-[2px] bg-terracotta rounded-full transition-all duration-300 ${isPlaying ? "animate-[bounce-bar_1.2s_infinite_ease-in-out_0.1s]" : ""}`} style={{ height: isPlaying ? undefined : "4px" }} />
+                  <span className={`w-[2px] bg-terracotta rounded-full transition-all duration-300 ${isPlaying ? "animate-[bounce-bar_1.2s_infinite_ease-in-out_0.3s]" : ""}`} style={{ height: isPlaying ? undefined : "8px" }} />
+                  <span className={`w-[2px] bg-terracotta rounded-full transition-all duration-300 ${isPlaying ? "animate-[bounce-bar_1.2s_infinite_ease-in-out_0.5s]" : ""}`} style={{ height: isPlaying ? undefined : "6px" }} />
+                  <span className={`w-[2px] bg-terracotta rounded-full transition-all duration-300 ${isPlaying ? "animate-[bounce-bar_1.2s_infinite_ease-in-out_0.2s]" : ""}`} style={{ height: isPlaying ? undefined : "10px" }} />
+                </div>
+              </>
+            )}
           </div>
 
           {/* Nav Buttons */}
