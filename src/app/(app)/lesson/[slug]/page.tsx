@@ -321,6 +321,21 @@ export default function LessonPage({ params }: { params: any }) {
 
   const { markWordCompleted, syncWordSRS } = useVocabProgress(user?.id, !isLoadingAuth);
 
+  // ── Text Size State ──────────────────────────────────────────────────────────
+  const [textSize, setTextSize] = useState<"sm" | "base" | "lg" | "xl">("base");
+
+  const decreaseTextSize = () => {
+    if (textSize === "xl") setTextSize("lg");
+    else if (textSize === "lg") setTextSize("base");
+    else if (textSize === "base") setTextSize("sm");
+  };
+
+  const increaseTextSize = () => {
+    if (textSize === "sm") setTextSize("base");
+    else if (textSize === "base") setTextSize("lg");
+    else if (textSize === "lg") setTextSize("xl");
+  };
+
   // ── Card Navigation State ────────────────────────────────────────────────────
   const [currentCard, setCurrentCard] = useState(0);
   const [slideDir, setSlideDir] = useState<"left" | "right" | null>(null);
@@ -538,6 +553,7 @@ export default function LessonPage({ params }: { params: any }) {
       type: lesson.type,
       definition: lesson.definition,
       narrative: lesson.narrative,
+      custom_svg: lesson.custom_svg || "",
       story: (lesson as any).story || "",
       real_life_usage: (lesson as any).real_life_usage ? JSON.parse(JSON.stringify((lesson as any).real_life_usage)) : [],
       quiz_question: q?.question || "",
@@ -668,7 +684,7 @@ export default function LessonPage({ params }: { params: any }) {
         </div>
       ) : (
         <div className="text-center pt-4 pb-2">
-          <p className="text-2xl md:text-3xl leading-relaxed md:leading-snug text-light-gray/90 font-medium">
+          <p className={`leading-relaxed md:leading-snug text-light-gray/90 font-medium ${textSize === 'sm' ? 'text-lg md:text-xl' : textSize === 'base' ? 'text-2xl md:text-3xl' : textSize === 'lg' ? 'text-3xl md:text-4xl' : 'text-4xl md:text-5xl'}`}>
             {renderMarkdown(lesson.definition)}
           </p>
         </div>
@@ -712,7 +728,7 @@ export default function LessonPage({ params }: { params: any }) {
                 <Stickman pose={lesson.stickman_id as StickmanPose} className="w-20 h-20 md:w-24 md:h-24 drop-shadow-xl" headColor="var(--color-terracotta)" />
               </div>
             )}
-            <p className="flex-1 text-base md:text-lg leading-relaxed md:leading-loose text-muted-ash">
+            <p className={`flex-1 leading-relaxed md:leading-loose text-muted-ash ${textSize === 'sm' ? 'text-sm' : textSize === 'base' ? 'text-base md:text-lg' : textSize === 'lg' ? 'text-lg md:text-xl' : 'text-xl md:text-2xl'}`}>
               {(lesson as any).story
                 ? renderMarkdown((lesson as any).story, lesson.word)
                 : "No story provided."}
@@ -737,6 +753,7 @@ export default function LessonPage({ params }: { params: any }) {
 
       {adminEditCard === 3 ? (
         <div className="space-y-4">
+          <AdminTextarea label="Mnemonic SVG Code" value={adminFields.custom_svg || ""} onChange={(v) => setAdminFields((p) => ({ ...p, custom_svg: v }))} />
           <AdminTextarea label="Narrative" value={adminFields.narrative || ""} onChange={(v) => setAdminFields((p) => ({ ...p, narrative: v }))} />
           <div className="flex gap-3">
             <button onClick={handleAdminSave} className="flex-1 py-2.5 bg-terracotta rounded-xl text-sm font-bold text-white">Save</button>
@@ -765,7 +782,7 @@ export default function LessonPage({ params }: { params: any }) {
             )}
           </div>
           <div className="w-full text-center space-y-3">
-            <p className="text-sm md:text-base leading-relaxed text-light-gray/90 font-normal">
+            <p className={`leading-relaxed text-light-gray/90 font-normal ${textSize === 'sm' ? 'text-xs' : textSize === 'base' ? 'text-sm md:text-base' : textSize === 'lg' ? 'text-base md:text-lg' : 'text-lg md:text-xl'}`}>
               {lesson.narrative ? renderMarkdown(lesson.narrative) : "No narrative provided."}
             </p>
           </div>
@@ -852,7 +869,7 @@ export default function LessonPage({ params }: { params: any }) {
                   <h4 className="text-[10px] font-bold text-muted-ash uppercase tracking-wider bg-deep-canvas inline-block px-3 py-1 rounded-lg border border-white/5">
                     {usage.context}
                   </h4>
-                  <p className="text-sm md:text-base leading-relaxed text-light-gray/90 mt-2 pl-3 border-l-2 border-terracotta/30">
+                  <p className={`leading-relaxed text-light-gray/90 mt-2 pl-3 border-l-2 border-terracotta/30 ${textSize === 'sm' ? 'text-xs' : textSize === 'base' ? 'text-sm md:text-base' : textSize === 'lg' ? 'text-base md:text-lg' : 'text-lg md:text-xl'}`}>
                     {renderMarkdown(usage.example, lesson.word)}
                   </p>
                 </div>
@@ -943,7 +960,7 @@ export default function LessonPage({ params }: { params: any }) {
             <span className="text-[10px] uppercase tracking-wider font-bold">✅ Quiz marks this word complete for SRS review</span>
           </div>
 
-          <p className="text-lg md:text-xl font-semibold text-light-gray leading-snug">
+          <p className={`font-semibold text-light-gray leading-snug ${textSize === 'sm' ? 'text-base' : textSize === 'base' ? 'text-lg md:text-xl' : textSize === 'lg' ? 'text-xl md:text-2xl' : 'text-2xl md:text-3xl'}`}>
             {renderMarkdown(activeQuiz.question)}
           </p>
 
@@ -968,7 +985,7 @@ export default function LessonPage({ params }: { params: any }) {
                   key={idx}
                   disabled={quizSubmitted}
                   onClick={() => handleOptionClick(idx)}
-                  className={`w-full text-left p-4 rounded-2xl border text-sm md:text-base font-medium transition-all duration-200 ${optionStyle}`}
+                  className={`w-full text-left p-4 rounded-2xl border font-medium transition-all duration-200 ${optionStyle} ${textSize === 'sm' ? 'text-xs' : textSize === 'base' ? 'text-sm md:text-base' : textSize === 'lg' ? 'text-base md:text-lg' : 'text-lg md:text-xl'}`}
                 >
                   {renderMarkdown(option.text)}
                 </button>
@@ -1003,7 +1020,7 @@ export default function LessonPage({ params }: { params: any }) {
                   </span>
                 )}
               </div>
-              <p className="text-base text-muted-ash leading-relaxed">
+              <p className={`leading-relaxed text-muted-ash ${textSize === 'sm' ? 'text-sm' : textSize === 'base' ? 'text-base' : textSize === 'lg' ? 'text-lg' : 'text-xl'}`}>
                 {renderMarkdown(activeQuiz.explanation)}
               </p>
               {nextReviewDays !== null && (
@@ -1094,7 +1111,10 @@ export default function LessonPage({ params }: { params: any }) {
 
   // ── Render ───────────────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col min-h-screen bg-absolute-black text-light-gray select-none relative">
+    <div
+      {...swipeHandlers}
+      className="flex flex-col h-screen bg-absolute-black text-light-gray select-none relative overflow-hidden"
+    >
       <FloatingStickmen pose="standing" />
 
       <audio
@@ -1125,18 +1145,80 @@ export default function LessonPage({ params }: { params: any }) {
         </Link>
       </nav>
 
-      {/* Main */}
-      <main className="flex-1 relative z-10 flex flex-col">
-        <div className="w-full max-w-2xl mx-auto px-4 py-6 md:py-10 flex flex-col gap-6 flex-1">
-
-          {/* Progress Bar */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-center text-xs font-bold uppercase tracking-widest text-muted-ash">
+      {/* Main Viewport Container */}
+      <main className="flex-1 flex flex-col overflow-hidden relative">
+        {/* Persistent/Sticky Top Progress Bar */}
+        <div className="w-full bg-absolute-black/95 border-b border-white/5 py-3 shrink-0 z-30">
+          <div className="max-w-2xl mx-auto px-4 space-y-2.5">
+            <div className="flex items-center justify-between text-xs font-bold uppercase tracking-widest text-muted-ash">
               <span>
                 Step {currentCard + 1} of {TOTAL_CARDS} &nbsp;·&nbsp;{" "}
                 <span className="text-light-gray">{lesson.word}</span>
               </span>
+              
+              {/* Utility Toolbar: Text Sizing + Help Tooltip */}
+              <div className="relative flex items-center gap-1.5 border border-white/5 bg-white/5 rounded-full px-2.5 py-1 shrink-0">
+                <button
+                  onClick={decreaseTextSize}
+                  className="hover:text-light-gray text-muted-ash transition-colors p-0.5"
+                  title="Smaller text"
+                  aria-label="Decrease text size"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 12H5" />
+                  </svg>
+                </button>
+                <span className="text-white/10 text-[10px]">|</span>
+                <button
+                  onClick={increaseTextSize}
+                  className="hover:text-light-gray text-muted-ash transition-colors p-0.5"
+                  title="Larger text"
+                  aria-label="Increase text size"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7-7.5H5" />
+                  </svg>
+                </button>
+                <span className="text-white/10 text-[10px]">|</span>
+                <button
+                  onClick={() => setShowSwipeHint((prev) => !prev)}
+                  className={`hover:text-light-gray transition-colors p-0.5 ${showSwipeHint ? "text-terracotta" : "text-muted-ash"}`}
+                  title="Help & gestures"
+                  aria-label="Show help"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5">
+                    <circle cx="12" cy="12" r="10" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3m0 4h.01" />
+                  </svg>
+                </button>
+
+                {/* Floating Tooltip Bubble */}
+                {showSwipeHint && (
+                  <div className="absolute right-0 top-8 z-50 bg-card-gray border border-white/10 text-light-gray px-4 py-3 rounded-xl shadow-2xl text-xs font-semibold w-52 text-center animate-in fade-in slide-in-from-top-2 duration-200 normal-case">
+                    <div className="absolute top-[-5px] right-3.5 w-2.5 h-2.5 bg-card-gray border-t border-l border-white/10 rotate-45" />
+                    <div className="flex flex-col gap-2">
+                      <span className="text-left leading-normal font-medium text-light-gray">💡 Quick Tips:</span>
+                      <ul className="text-left space-y-1 list-disc pl-3 text-muted-ash text-[10px] leading-normal font-normal">
+                        <li>Swipe anywhere on screen to navigate cards.</li>
+                        <li>Click + / - to resize page text.</li>
+                        <li>Narration audio is persistent at the bottom.</li>
+                      </ul>
+                      <button
+                        onClick={() => {
+                          setShowSwipeHint(false);
+                          localStorage.setItem("vocabpod_swipe_hint_dismissed", "1");
+                        }}
+                        className="mt-1 w-full py-1 bg-white/5 border border-white/10 rounded-lg text-[9px] font-bold text-muted-ash hover:text-white uppercase tracking-wider"
+                      >
+                        Got it
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
+            
+            {/* Progress Bar Track */}
             <div className="bg-white/5 rounded-full h-2.5 overflow-hidden relative border border-white/5 shadow-inner">
               <div
                 className="bg-gradient-to-r from-terracotta to-[#f97316] rounded-full h-full transition-all duration-700 relative"
@@ -1154,13 +1236,13 @@ export default function LessonPage({ params }: { params: any }) {
                 />
               </div>
             </div>
+
             {/* Step dots */}
-            <div className="flex items-center justify-center gap-1.5">
+            <div className="flex items-center justify-center gap-1.5 pt-1">
               {CARD_LABELS.map((label, i) => (
                 <button
                   key={i}
                   onClick={() => {
-                    // Only allow navigating to already-visited or adjacent cards
                     if (i <= currentCard || i === currentCard + 1) {
                       goToCard(i);
                     }
@@ -1177,9 +1259,11 @@ export default function LessonPage({ params }: { params: any }) {
               ))}
             </div>
           </div>
+        </div>
 
-          {/* Card Area with Side Floating Buttons */}
-          <div className="flex-1 relative flex items-center">
+        {/* Scrollable Card Area */}
+        <div className="flex-1 overflow-y-auto py-6 md:py-8 flex flex-col justify-center">
+          <div className="w-full max-w-2xl mx-auto px-4 relative flex items-center min-h-[300px]">
             {/* Left Floating Arrow Button */}
             <button
               onClick={() => navigateTo("right")}
@@ -1199,7 +1283,6 @@ export default function LessonPage({ params }: { params: any }) {
             {/* Card Content Container */}
             <div className="flex-1 overflow-hidden relative">
               <div
-                {...swipeHandlers}
                 className="bg-card-gray border border-white/5 rounded-3xl p-6 md:p-8 shadow-2xl overflow-hidden relative"
                 style={getSlideStyle()}
               >
@@ -1223,118 +1306,96 @@ export default function LessonPage({ params }: { params: any }) {
               </svg>
             </button>
           </div>
+        </div>
 
-          {/* Persistent Audio Player */}
-          <div className="bg-card-gray/90 backdrop-blur-md border border-white/5 shadow-2xl rounded-2xl p-3.5 flex items-center justify-between gap-4 relative overflow-hidden transition-all duration-300">
-            {!isPremium ? (
-              <div className="flex items-center justify-between w-full">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">🎧</span>
-                  <span className="text-xs text-muted-ash font-medium">Narration is a Premium feature</span>
+        {/* Persistent Bottom Control Bar */}
+        <div className="w-full bg-absolute-black/95 border-t border-white/5 py-4 pb-6 shrink-0 z-30 shadow-2xl">
+          <div className="max-w-2xl mx-auto px-4 space-y-3.5">
+            {/* Persistent Audio Player */}
+            <div className="bg-card-gray/90 backdrop-blur-md border border-white/5 shadow-lg rounded-2xl p-3.5 flex items-center justify-between gap-4 relative overflow-hidden transition-all duration-300">
+              {!isPremium ? (
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">🎧</span>
+                    <span className="text-xs text-muted-ash font-medium">Narration is a Premium feature</span>
+                  </div>
+                  <Link
+                    href="/upgrade"
+                    className="bg-terracotta hover:bg-terracotta/90 text-white text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-xl transition-all"
+                  >
+                    Unlock
+                  </Link>
                 </div>
-                <Link
-                  href="/upgrade"
-                  className="bg-terracotta hover:bg-terracotta/90 text-white text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-xl transition-all"
-                >
-                  Unlock
-                </Link>
-              </div>
-            ) : (
-              <>
-                <button
-                  onClick={togglePlay}
-                  className="w-10 h-10 shrink-0 rounded-full bg-terracotta text-white flex items-center justify-center transition-all hover:scale-105 hover:shadow-[0_0_15px_rgba(224,75,53,0.4)]"
-                  title={isPlaying ? "Pause narration" : "Play narration"}
-                >
-                  {isPlaying ? (
-                    <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
-                      <rect x="6" y="4" width="4" height="16" rx="1" />
-                      <rect x="14" y="4" width="4" height="16" rx="1" />
-                    </svg>
-                  ) : (
-                    <svg className="w-3.5 h-3.5 fill-current translate-x-[1px]" viewBox="0 0 24 24">
-                      <path d="M8 5v14l11-7z" />
-                    </svg>
-                  )}
-                </button>
-                <div className="flex-1 flex items-center gap-3">
-                  <input
-                    type="range"
-                    min="0"
-                    max={duration || 100}
-                    value={currentTime}
-                    onChange={handleProgressBarChange}
-                    className="flex-1 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-terracotta focus:outline-none"
-                  />
-                  <span className="text-[10px] text-muted-ash shrink-0 font-mono">
-                    {formatTime(currentTime)} / {formatTime(duration)}
-                  </span>
-                </div>
-                {/* Audio Visualizer Waves */}
-                <div className="flex items-end gap-[3px] h-4 w-6 shrink-0 justify-center">
-                  <span className={`w-[2px] bg-terracotta rounded-full transition-all duration-300 ${isPlaying ? "animate-[bounce-bar_1.2s_infinite_ease-in-out_0.1s]" : ""}`} style={{ height: isPlaying ? undefined : "4px" }} />
-                  <span className={`w-[2px] bg-terracotta rounded-full transition-all duration-300 ${isPlaying ? "animate-[bounce-bar_1.2s_infinite_ease-in-out_0.3s]" : ""}`} style={{ height: isPlaying ? undefined : "8px" }} />
-                  <span className={`w-[2px] bg-terracotta rounded-full transition-all duration-300 ${isPlaying ? "animate-[bounce-bar_1.2s_infinite_ease-in-out_0.5s]" : ""}`} style={{ height: isPlaying ? undefined : "6px" }} />
-                  <span className={`w-[2px] bg-terracotta rounded-full transition-all duration-300 ${isPlaying ? "animate-[bounce-bar_1.2s_infinite_ease-in-out_0.2s]" : ""}`} style={{ height: isPlaying ? undefined : "10px" }} />
-                </div>
-              </>
-            )}
-          </div>
+              ) : (
+                <>
+                  <button
+                    onClick={togglePlay}
+                    className="w-10 h-10 shrink-0 rounded-full bg-terracotta text-white flex items-center justify-center transition-all hover:scale-105 hover:shadow-[0_0_15px_rgba(224,75,53,0.4)]"
+                    title={isPlaying ? "Pause narration" : "Play narration"}
+                  >
+                    {isPlaying ? (
+                      <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                        <rect x="6" y="4" width="4" height="16" rx="1" />
+                        <rect x="14" y="4" width="4" height="16" rx="1" />
+                      </svg>
+                    ) : (
+                      <svg className="w-3.5 h-3.5 fill-current translate-x-[1px]" viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z" />
+                      </svg>
+                    )}
+                  </button>
+                  <div className="flex-1 flex items-center gap-3">
+                    <input
+                      type="range"
+                      min="0"
+                      max={duration || 100}
+                      value={currentTime}
+                      onChange={handleProgressBarChange}
+                      className="flex-1 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-terracotta focus:outline-none"
+                    />
+                    <span className="text-[10px] text-muted-ash shrink-0 font-mono">
+                      {formatTime(currentTime)} / {formatTime(duration)}
+                    </span>
+                  </div>
+                  {/* Audio Visualizer Waves */}
+                  <div className="flex items-end gap-[3px] h-4 w-6 shrink-0 justify-center">
+                    <span className={`w-[2px] bg-terracotta rounded-full transition-all duration-300 ${isPlaying ? "animate-[bounce-bar_1.2s_infinite_ease-in-out_0.1s]" : ""}`} style={{ height: isPlaying ? undefined : "4px" }} />
+                    <span className={`w-[2px] bg-terracotta rounded-full transition-all duration-300 ${isPlaying ? "animate-[bounce-bar_1.2s_infinite_ease-in-out_0.3s]" : ""}`} style={{ height: isPlaying ? undefined : "8px" }} />
+                    <span className={`w-[2px] bg-terracotta rounded-full transition-all duration-300 ${isPlaying ? "animate-[bounce-bar_1.2s_infinite_ease-in-out_0.5s]" : ""}`} style={{ height: isPlaying ? undefined : "6px" }} />
+                    <span className={`w-[2px] bg-terracotta rounded-full transition-all duration-300 ${isPlaying ? "animate-[bounce-bar_1.2s_infinite_ease-in-out_0.2s]" : ""}`} style={{ height: isPlaying ? undefined : "10px" }} />
+                  </div>
+                </>
+              )}
+            </div>
 
-          {/* Nav Buttons */}
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => navigateTo("right")}
-              disabled={!canGoPrev}
-              className={`flex-1 min-h-[48px] py-4 rounded-2xl border text-sm font-bold uppercase tracking-widest transition-all ${
-                canGoPrev
-                  ? "bg-card-gray border-white/10 text-light-gray hover:border-terracotta/50"
-                  : "bg-white/5 border-white/5 text-muted-ash/30 cursor-not-allowed"
-              }`}
-            >
-              ← Previous
-            </button>
-            <button
-              onClick={() => navigateTo("left")}
-              disabled={!canGoNext}
-              className={`flex-1 min-h-[48px] py-4 rounded-2xl border text-sm font-bold uppercase tracking-widest transition-all ${
-                canGoNext
-                  ? "bg-terracotta border-terracotta text-white hover:shadow-[0_0_20px_rgba(224,75,53,0.4)]"
-                  : "bg-white/5 border-white/5 text-muted-ash/30 cursor-not-allowed"
-              }`}
-            >
-              {currentCard === TOTAL_CARDS - 1 ? "Done ✓" : "Next →"}
-            </button>
+            {/* Nav Buttons */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => navigateTo("right")}
+                disabled={!canGoPrev}
+                className={`flex-1 min-h-[48px] py-4 rounded-2xl border text-sm font-bold uppercase tracking-widest transition-all ${
+                  canGoPrev
+                    ? "bg-card-gray border-white/10 text-light-gray hover:border-terracotta/50"
+                    : "bg-white/5 border-white/5 text-muted-ash/30 cursor-not-allowed"
+                }`}
+              >
+                ← Previous
+              </button>
+              <button
+                onClick={() => navigateTo("left")}
+                disabled={!canGoNext}
+                className={`flex-1 min-h-[48px] py-4 rounded-2xl border text-sm font-bold uppercase tracking-widest transition-all ${
+                  canGoNext
+                    ? "bg-terracotta border-terracotta text-white hover:shadow-[0_0_20px_rgba(224,75,53,0.4)]"
+                    : "bg-white/5 border-white/5 text-muted-ash/30 cursor-not-allowed"
+                }`}
+              >
+                {currentCard === TOTAL_CARDS - 1 ? "Done ✓" : "Next →"}
+              </button>
+            </div>
           </div>
         </div>
       </main>
-
-      {/* Swipe Hint Toast */}
-      {showSwipeHint && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-card-gray border border-white/10 text-light-gray px-5 py-3 rounded-2xl shadow-2xl text-sm font-medium">
-          <span>💡 Swipe between cards</span>
-          <button
-            onClick={() => {
-              setShowSwipeHint(false);
-              localStorage.setItem("vocabpod_swipe_hint_dismissed", "1");
-            }}
-            className="opacity-60 hover:opacity-100 transition-opacity text-xs"
-          >
-            ✕
-          </button>
-        </div>
-      )}
-
-      {/* Re-show hint button */}
-      {!showSwipeHint && (
-        <button
-          onClick={() => setShowSwipeHint(true)}
-          className="fixed bottom-6 right-6 z-50 w-9 h-9 rounded-full bg-card-gray border border-white/10 text-muted-ash hover:text-light-gray flex items-center justify-center text-sm font-bold transition-all hover:border-white/20 shadow-lg"
-          title="Show swipe hint"
-        >
-          ?
-        </button>
-      )}
 
       {/* Toast */}
       {toast && (
