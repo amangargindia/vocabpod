@@ -7,7 +7,9 @@ export default function ClientSidebar() {
   const pathname = usePathname();
   const hiddenPaths = ["/login", "/signup", "/upgrade", "/upgrade/success"];
 
-  if (hiddenPaths.includes(pathname)) {
+  const isLesson = pathname.startsWith("/lesson/");
+  
+  if (hiddenPaths.includes(pathname) || isLesson) {
     return null;
   }
 

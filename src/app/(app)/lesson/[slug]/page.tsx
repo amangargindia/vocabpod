@@ -346,6 +346,13 @@ export default function LessonPage({ params }: { params: any }) {
   const [toast, setToast] = useState<{ message: string; type: "info" | "success" | "error" } | null>(null);
   const [showSwipeHint, setShowSwipeHint] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Scroll to top when card changes
+    scrollContainerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+  }, [currentCard]);
+
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 767px)');
     setIsMobile(mq.matches);
@@ -385,7 +392,7 @@ export default function LessonPage({ params }: { params: any }) {
 
         const q = lessonData.quiz_questions[0];
         if (q && q.options) {
-          setShuffledOptions([...q.options].sort(() => Math.random() - 0.5));
+          setShuffledOptions([...q.options]);
         }
 
         if (lessonData?.audio_url && isPremium) {
@@ -632,7 +639,7 @@ export default function LessonPage({ params }: { params: any }) {
             className="text-muted-ash hover:text-terracotta transition-colors text-base"
             title="Edit"
           >
-            ✏️
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
           </button>
         )}
       </div>
@@ -661,7 +668,7 @@ export default function LessonPage({ params }: { params: any }) {
 
           <div className="text-center">
             <span className="inline-flex items-center gap-1.5 text-xs text-muted-ash bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
-              <span>🎧</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M3 18v-6a9 9 0 0 1 18 0v6" /><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z" /></svg>
               {isPremium ? "Audio narration loaded below" : "Audio narration available below"}
             </span>
           </div>
@@ -677,7 +684,7 @@ export default function LessonPage({ params }: { params: any }) {
         <SectionBadge label="Meaning" />
         {isAdmin && (
           <button onClick={() => startAdminEdit(1)} className="text-muted-ash hover:text-terracotta transition-colors text-base" title="Edit">
-            ✏️
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
           </button>
         )}
       </div>
@@ -709,7 +716,7 @@ export default function LessonPage({ params }: { params: any }) {
           <SectionBadge label="Story" />
           {isAdmin && !isLocked && (
             <button onClick={() => startAdminEdit(2)} className="text-muted-ash hover:text-terracotta transition-colors text-base" title="Edit">
-              ✏️
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
             </button>
           )}
         </div>
@@ -754,7 +761,7 @@ export default function LessonPage({ params }: { params: any }) {
         <SectionBadge label="Mnemonic" />
         {isAdmin && (
           <button onClick={() => startAdminEdit(3)} className="text-muted-ash hover:text-terracotta transition-colors text-base" title="Edit">
-            ✏️
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
           </button>
         )}
       </div>
@@ -800,6 +807,12 @@ export default function LessonPage({ params }: { params: any }) {
   );
 
   // Card 4: Real-Life Usage
+  const cleanExampleText = (text: any) => {
+    if (!text) return "";
+    let str = Array.isArray(text) ? text[0] : String(text);
+    return str.replace(/^["'\[\]\s]+|["'\[\]\s]+$/g, '');
+  };
+
   const renderCard4 = () => {
     const isLocked = !isPremium;
     const usages: any[] = (lesson as any).real_life_usage || [];
@@ -809,7 +822,7 @@ export default function LessonPage({ params }: { params: any }) {
           <SectionBadge label="Real-Life Usage" />
           {isAdmin && !isLocked && (
             <button onClick={() => startAdminEdit(4)} className="text-muted-ash hover:text-terracotta transition-colors text-base" title="Edit">
-              ✏️
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
             </button>
           )}
         </div>
@@ -873,13 +886,18 @@ export default function LessonPage({ params }: { params: any }) {
           <div className="space-y-6 pt-2">
             {usages.length > 0 ? (
               usages.map((usage: any, idx: number) => (
-                <div key={idx} className="space-y-2">
-                  <h4 className="text-[10px] font-bold text-muted-ash uppercase tracking-wider bg-deep-canvas inline-block px-3 py-1 rounded-lg border border-white/5">
-                    {usage.context}
-                  </h4>
-                  <p className={`leading-relaxed text-light-gray/90 mt-2 pl-3 border-l-2 border-terracotta/30 ${textSize === 'sm' ? 'text-xs' : textSize === 'base' ? 'text-sm md:text-base' : textSize === 'lg' ? 'text-base md:text-lg' : 'text-lg md:text-xl'}`}>
-                    {renderMarkdown(usage.example, lesson.word)}
-                  </p>
+                <div key={idx} className="bg-white/5 rounded-2xl p-4 md:p-5 border border-white/10 relative overflow-hidden flex items-start gap-4 shadow-inner">
+                  <div className="w-7 h-7 md:w-8 md:h-8 shrink-0 rounded-full bg-terracotta text-white flex items-center justify-center text-xs md:text-sm font-black shadow-[0_0_10px_rgba(224,75,53,0.3)]">
+                    {idx + 1}
+                  </div>
+                  <div className="space-y-2 flex-1 mt-0.5 md:mt-1">
+                    <h4 className="text-[11px] md:text-xs font-bold text-terracotta uppercase tracking-widest border-b border-white/5 pb-2">
+                      {usage.context}
+                    </h4>
+                    <p className={`text-muted-ash font-medium italic ${textSize === 'sm' ? 'text-[11px]' : textSize === 'base' ? 'text-xs md:text-sm' : textSize === 'lg' ? 'text-sm md:text-base' : 'text-base md:text-lg'}`}>
+                      Example: <span className="text-light-gray/95 not-italic block mt-1.5 leading-relaxed font-semibold">"{renderMarkdown(cleanExampleText(usage.example), lesson.word)}"</span>
+                    </p>
+                  </div>
                 </div>
               ))
             ) : (
@@ -898,7 +916,7 @@ export default function LessonPage({ params }: { params: any }) {
         <SectionBadge label="Quiz" />
         {isAdmin && (
           <button onClick={() => startAdminEdit(5)} className="text-muted-ash hover:text-terracotta transition-colors text-base" title="Edit">
-            ✏️
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
           </button>
         )}
       </div>
@@ -961,11 +979,13 @@ export default function LessonPage({ params }: { params: any }) {
         </div>
       ) : (
         <>
-          <div className="flex items-center gap-2 text-muted-ash">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="w-3.5 h-3.5 shrink-0">
-              <circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" />
+          <div className="flex items-center gap-2 text-muted-ash bg-white/5 p-3 rounded-xl border border-white/5">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="w-5 h-5 shrink-0 text-terracotta">
+              <path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
             </svg>
-            <span className="text-[10px] uppercase tracking-wider font-bold">✅ Quiz marks this word complete for SRS review</span>
+            <span className="text-xs font-semibold text-light-gray leading-snug">
+              Quiz pass karne par ye word aapke daily review cycle me add ho jayega.
+            </span>
           </div>
 
           <p className={`font-semibold text-light-gray leading-snug ${textSize === 'sm' ? 'text-base' : textSize === 'base' ? 'text-lg md:text-xl' : textSize === 'lg' ? 'text-xl md:text-2xl' : 'text-2xl md:text-3xl'}`}>
@@ -1056,11 +1076,38 @@ export default function LessonPage({ params }: { params: any }) {
     <div className="relative space-y-8 text-center overflow-hidden">
       <ConfettiParticles />
       <div className="relative z-10 space-y-6">
-        <SectionBadge label="Complete! 🎉" />
+        <SectionBadge label="Complete!" />
 
         <div className="flex justify-center">
-          <div className="bg-deep-canvas p-6 rounded-3xl border border-terracotta/20 shadow-[0_0_40px_rgba(224,75,53,0.15)] animate-pulse">
-            <Stickman pose="jumping" className="w-24 h-24 md:w-32 md:h-32" headColor="var(--color-terracotta)" />
+          <div className="bg-deep-canvas p-6 rounded-3xl border border-terracotta/20 shadow-[0_0_40px_rgba(224,75,53,0.15)] overflow-hidden">
+            <div className="relative w-28 h-28 md:w-36 md:h-36 flex items-center justify-center">
+              {/* Stars exploding animation */}
+              <svg className="absolute inset-0 w-full h-full animate-[spin_4s_linear_infinite]" viewBox="0 0 100 100">
+                <path d="M50 10 L55 35 L80 40 L55 45 L50 70 L45 45 L20 40 L45 35 Z" fill="#E04B35" className="animate-pulse" />
+                <circle cx="20" cy="20" r="3" fill="#FFF" className="animate-ping" />
+                <circle cx="80" cy="20" r="2" fill="#E04B35" className="animate-ping" style={{animationDelay: '0.5s'}} />
+                <circle cx="20" cy="80" r="4" fill="#FFF" className="animate-ping" style={{animationDelay: '1s'}} />
+                <circle cx="80" cy="80" r="2" fill="#E04B35" className="animate-ping" style={{animationDelay: '0.2s'}} />
+              </svg>
+              
+              {/* Cute Jumping Stickman SVG */}
+              <svg className="w-20 h-20 md:w-28 md:h-28 relative z-10 animate-[bounce_1s_infinite]" viewBox="0 0 100 100" stroke="#FFF" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" fill="none">
+                {/* Head */}
+                <circle cx="50" cy="30" r="14" fill="#E04B35" stroke="none" />
+                {/* Happy Face */}
+                <path d="M44 26 Q47 23 50 26" stroke="#FFF" strokeWidth="2.5" />
+                <path d="M56 26 Q53 23 50 26" stroke="#FFF" strokeWidth="2.5" />
+                <path d="M45 32 Q50 38 55 32" stroke="#FFF" strokeWidth="2.5" fill="none" />
+                {/* Body */}
+                <path d="M50 44 L50 65" />
+                {/* Arms jumping up */}
+                <path d="M50 48 L25 25" />
+                <path d="M50 48 L75 25" />
+                {/* Legs jumping up/bent */}
+                <path d="M50 65 L30 85 L25 70" />
+                <path d="M50 65 L70 85 L75 70" />
+              </svg>
+            </div>
           </div>
         </div>
 
@@ -1121,7 +1168,8 @@ export default function LessonPage({ params }: { params: any }) {
   return (
     <div
       {...swipeHandlers}
-      className="flex flex-col bg-absolute-black text-light-gray select-none relative" style={{ minHeight: '100dvh' }}
+      className="flex-1 flex flex-col bg-absolute-black text-light-gray select-none relative overflow-hidden"
+      style={{ height: '100dvh', maxHeight: '100dvh' }}
     >
       <FloatingStickmen pose="standing" />
 
@@ -1159,9 +1207,11 @@ export default function LessonPage({ params }: { params: any }) {
         <div className="w-full bg-absolute-black/95 border-b border-white/5 py-3 shrink-0 z-30">
           <div className="max-w-2xl mx-auto px-4 space-y-2.5">
             <div className="flex items-center justify-between text-xs font-bold uppercase tracking-widest text-muted-ash">
-              <span>
-                Step {currentCard + 1} of {TOTAL_CARDS} &nbsp;·&nbsp;{" "}
-                <span className="text-light-gray">{lesson.word}</span>
+              <span className="flex items-center gap-2">
+                <span className="bg-terracotta/20 text-terracotta px-2 py-0.5 rounded-md text-[10px] uppercase tracking-widest font-black shrink-0">
+                  {CARD_LABELS[currentCard]}
+                </span>
+                <span className="text-light-gray truncate max-w-[120px] md:max-w-[200px]">{lesson.word}</span>
               </span>
               
               {/* Utility Toolbar: Text Sizing + Help Tooltip */}
@@ -1226,25 +1276,6 @@ export default function LessonPage({ params }: { params: any }) {
               </div>
             </div>
             
-            {/* Progress Bar Track */}
-            <div className="bg-white/5 rounded-full h-2.5 overflow-hidden relative border border-white/5 shadow-inner">
-              <div
-                className="bg-gradient-to-r from-terracotta to-[#f97316] rounded-full h-full transition-all duration-700 relative"
-                style={{
-                  width: `${progressPct}%`,
-                  animation: "pulse-glow 2s infinite ease-in-out"
-                }}
-              >
-                {/* Fast sweeping shimmer line */}
-                <div 
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
-                  style={{
-                    animation: "sweep 1.8s infinite linear"
-                  }}
-                />
-              </div>
-            </div>
-
             {/* Step dots */}
             <div className="flex items-center justify-center gap-1.5 pt-1">
               {CARD_LABELS.map((label, i) => (
@@ -1269,11 +1300,14 @@ export default function LessonPage({ params }: { params: any }) {
           </div>
         </div>
 
-        {/* Scrollable Card Area */}
-        <div className="flex-1 overflow-y-auto py-4 md:py-6 flex flex-col justify-center">
-          <div className="w-full max-w-2xl mx-auto px-4 relative flex items-center min-h-[300px]">
+        {/* Scrollable Card Area - Safely vertically centered without clipping top on overflow */}
+        <div 
+          ref={scrollContainerRef}
+          className="flex-1 overflow-y-auto px-4 py-4 md:py-6 flex flex-col"
+        >
+          <div className="w-full max-w-2xl mx-auto relative my-auto shrink-0 flex flex-col justify-center min-h-[300px]">
             {/* Card Content Container */}
-            <div className="flex-1 overflow-hidden relative">
+            <div className="flex-1 w-full relative">
               <div
                 className="bg-card-gray border border-white/5 rounded-3xl p-5 md:p-8 shadow-2xl overflow-hidden relative"
                 style={getSlideStyle()}
@@ -1284,18 +1318,18 @@ export default function LessonPage({ params }: { params: any }) {
           </div>
         </div>
 
-        {/* Persistent Bottom Control Bar — z-[60] sits above sidebar z-50. On mobile, pb clears the 70px bottom nav. */}
+        {/* Persistent Bottom Control Bar */}
         <div
-          className="w-full bg-absolute-black/95 border-t border-white/10 pt-3 shrink-0 z-[60] shadow-[0_-8px_32px_rgba(0,0,0,0.5)]"
-          style={{ paddingBottom: isMobile ? 'calc(70px + max(0px, env(safe-area-inset-bottom)))' : 'max(0.75rem, env(safe-area-inset-bottom))' }}
+          className="w-full bg-absolute-black border-t border-white/10 pt-2 shrink-0 z-[60] shadow-[0_-8px_32px_rgba(0,0,0,0.5)]"
+          style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
         >
-          <div className="max-w-2xl mx-auto px-4 space-y-3">
+          <div className="max-w-2xl mx-auto px-3 space-y-2">
             {/* Persistent Audio Player */}
-            <div className="bg-card-gray/90 backdrop-blur-md border border-white/5 shadow-lg rounded-2xl p-3.5 flex items-center justify-between gap-4 relative overflow-hidden transition-all duration-300">
+            <div className="bg-card-gray border border-white/5 shadow-lg rounded-xl p-2.5 flex items-center justify-between gap-3 relative overflow-hidden transition-all duration-300">
               {!isPremium ? (
                 <div className="flex items-center justify-between w-full">
                   <div className="flex items-center gap-2">
-                    <span className="text-lg">🎧</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><path d="M3 18v-6a9 9 0 0 1 18 0v6" /><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z" /></svg>
                     <span className="text-xs text-muted-ash font-medium">Narration is a Premium feature</span>
                   </div>
                   <Link
@@ -1309,7 +1343,7 @@ export default function LessonPage({ params }: { params: any }) {
                 <>
                   <button
                     onClick={togglePlay}
-                    className="w-10 h-10 shrink-0 rounded-full bg-terracotta text-white flex items-center justify-center transition-all hover:scale-105 hover:shadow-[0_0_15px_rgba(224,75,53,0.4)]"
+                    className="w-8 h-8 shrink-0 rounded-full bg-terracotta text-white flex items-center justify-center transition-all hover:scale-105 hover:shadow-[0_0_15px_rgba(224,75,53,0.4)]"
                     title={isPlaying ? "Pause narration" : "Play narration"}
                   >
                     {isPlaying ? (
@@ -1348,7 +1382,7 @@ export default function LessonPage({ params }: { params: any }) {
             </div>
 
             {/* Nav Buttons */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => navigateTo("right")}
                 disabled={!canGoPrev}
