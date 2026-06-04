@@ -29,6 +29,9 @@ const DEFAULT_STATS: UserStats = {
   progressList: [],
 };
 
+let lastProgressFetchTime: Record<string, number> = {};
+const PROGRESS_COOLDOWN_MS = 15 * 60 * 1000;
+
 export function useVocabProgress(initialUserId?: string | null, isParentLoaded?: boolean) {
   const [stats, setStats] = useState<UserStats>(DEFAULT_STATS);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -82,13 +85,21 @@ export function useVocabProgress(initialUserId?: string | null, isParentLoaded?:
         setIsLoaded(true);
       }
 
-      // Step 4: Fetch fresh cloud data (overwrites local cache with authoritative DB state)
+      // Step 4: Fetch fresh cloud data if 15 minutes have passed since last fetch for this user
       if (currentUser) {
-        try {
-          const [cloudData, profileRes] = await Promise.all([
-            getCloudProgress(),
-            fetch(`/api/profile?userId=${currentUser.id}`)
-          ]);
+        const now = Date.now();
+        const lastFetch = lastProgressFetchTime[currentUser.id] || 0;
+        const needsFetch = now - lastFetch > PROGRESS_COOLDOWN_MS;
+
+        if (needsFetch) {
+          try {
+            const [cloudData, profileRes] = await Promise.all([
+              getCloudProgress(),
+              fetch(`/api/profile?userId=${currentUser.id}`)
+            ]);
+            
+            // Mark as fetched
+            lastProgressFetchTime[currentUser.id] = now;
 
           const profileData = profileRes.ok ? await profileRes.json() : null;
           const streak = profileData?.profile?.streak_count || 0;
@@ -119,7 +130,8 @@ export function useVocabProgress(initialUserId?: string | null, isParentLoaded?:
             }));
           }
         } catch (e) {
-          console.error("Failed to fetch cloud progress/profile", e);
+            console.error("Failed to fetch cloud progress/profile", e);
+          }
         }
       }
     }

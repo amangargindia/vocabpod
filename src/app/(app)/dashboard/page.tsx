@@ -37,7 +37,7 @@ export default function Dashboard() {
           }
         }
 
-        const words = await getWordFeed(true);
+        const words = await getWordFeed();
         setFeed(words || []);
 
         if (isPremium && user?.id && !isLoadingAuth) {

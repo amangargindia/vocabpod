@@ -125,6 +125,8 @@ export const mockLessons: Record<string, WordLesson> = {
 
 let cachedFeed: any[] | null = null;
 const cachedLessons: Record<string, WordLesson> = {};
+let lastFeedFetchTime = 0;
+const FETCH_COOLDOWN_MS = 15 * 60 * 1000;
 
 export function clearLessonsCache() {
   cachedFeed = null;
@@ -201,9 +203,13 @@ export async function getWordLesson(wordSlug: string): Promise<WordLesson> {
 }
 
 export async function getWordFeed(forceRefresh = false) {
-  // If we have an in-memory cache and not forcing refresh, return it and refresh in background
+  const now = Date.now();
+  const needsRefresh = forceRefresh || (now - lastFeedFetchTime > FETCH_COOLDOWN_MS);
+
+  // If we have an in-memory cache and not forcing refresh, return it and refresh in background if needed
   if (cachedFeed && !forceRefresh) {
-    if (supabase) {
+    if (supabase && needsRefresh) {
+      lastFeedFetchTime = now;
       (async () => {
         try {
           const { data, error } = await supabase
@@ -230,8 +236,8 @@ export async function getWordFeed(forceRefresh = false) {
         const parsed = JSON.parse(local);
         if (Array.isArray(parsed) && parsed.length > 0) {
           cachedFeed = parsed;
-          // Trigger background fetch to keep fresh
-          if (supabase) {
+          if (supabase && needsRefresh) {
+            lastFeedFetchTime = now;
             (async () => {
               try {
                 const { data, error } = await supabase
@@ -250,6 +256,8 @@ export async function getWordFeed(forceRefresh = false) {
       }
     } catch (e) {}
   }
+
+  lastFeedFetchTime = now;
 
   let data: any[] | null = null;
 
