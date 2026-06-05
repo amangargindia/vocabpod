@@ -82,6 +82,7 @@ export async function GET(req: Request) {
     let isFallbackMode = false;
     let audioCount = 0;
     let imageCount = 0;
+    let audioFiles: { key: string; size: number }[] = [];
 
     if (accountId && accessKeyId && secretAccessKey && bucketName) {
       try {
@@ -125,6 +126,7 @@ export async function GET(req: Request) {
               if (isAudio) {
                 audioSize += size;
                 audioCount++;
+                audioFiles.push({ key, size });
               } else if (isImageOrSvg) {
                 imageSize += size;
                 imageCount++;
@@ -139,6 +141,10 @@ export async function GET(req: Request) {
           isTruncated = res.IsTruncated ?? false;
           continuationToken = res.NextContinuationToken;
         }
+        
+        // Sort audio files by size descending
+        audioFiles.sort((a, b) => b.size - a.size);
+        
       } catch (r2Err) {
         console.error("R2 List Storage error, using fallback simulation:", r2Err);
         isFallbackMode = true;
@@ -177,7 +183,8 @@ export async function GET(req: Request) {
       mediaCount: {
         audio: audioCount,
         images: imageCount,
-      }
+      },
+      topAudioFiles: audioFiles.slice(0, 50) // Return top 50 largest audio files
     });
 
   } catch (err: any) {

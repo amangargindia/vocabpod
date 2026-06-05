@@ -1674,6 +1674,33 @@ export default function AdminPortal() {
                     </div>
                   </div>
                 </div>
+
+                {/* Largest Audio Files List */}
+                {storageStats.topAudioFiles && storageStats.topAudioFiles.length > 0 && (
+                  <div className="bg-card-gray border border-white/5 rounded-3xl p-6 space-y-4 shadow-2xl mt-8">
+                    <h3 className="text-xs font-black uppercase tracking-widest text-muted-ash">Largest Audio Files (Top 50)</h3>
+                    <div className="bg-deep-canvas border border-white/5 rounded-2xl overflow-hidden">
+                      <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
+                        <table className="w-full text-left text-xs">
+                          <thead className="bg-white/5 sticky top-0 backdrop-blur-md">
+                            <tr>
+                              <th className="px-4 py-3 font-bold text-muted-ash uppercase tracking-wider">File Path</th>
+                              <th className="px-4 py-3 font-bold text-muted-ash uppercase tracking-wider text-right">Size</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-white/5">
+                            {storageStats.topAudioFiles.map((file: any, i: number) => (
+                              <tr key={i} className="hover:bg-white/5 transition-colors">
+                                <td className="px-4 py-3 font-mono text-light-gray truncate max-w-[200px] md:max-w-[400px]" title={file.key}>{file.key}</td>
+                                <td className="px-4 py-3 font-bold text-terracotta text-right whitespace-nowrap">{formatBytes(file.size)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </>
             ) : null}
           </div>
