@@ -338,7 +338,7 @@ export default function Dashboard() {
 
           {/* Words for the Day Progress Bar */}
           {isLoaded && (
-            <section className="bg-card-gray border border-white/5 rounded-3xl p-5 md:p-6 shadow-xl space-y-3">
+            <section id="tour-daily-progress" className="bg-card-gray border border-white/5 rounded-3xl p-5 md:p-6 shadow-xl space-y-3">
               <div className="flex justify-between items-center">
                 <div className="flex items-center space-x-2.5">
                   <div className="w-8 h-8 rounded-full bg-terracotta/10 border border-terracotta/20 flex items-center justify-center">
@@ -393,7 +393,7 @@ export default function Dashboard() {
 
           {/* Lesson feed with Tabs */}
           <section className="flex flex-col space-y-4 md:space-y-5">
-            <div className="flex border-b border-white/5 sticky top-[64px] md:top-[80px] z-20 bg-absolute-black/95 backdrop-blur-xl -mx-4 px-4 md:-mx-10 md:px-10">
+            <div id="tour-tabs" className="flex border-b border-white/5 sticky top-[64px] md:top-[80px] z-20 bg-absolute-black/95 backdrop-blur-xl -mx-4 px-4 md:-mx-10 md:px-10">
               <button
                 onClick={() => setActiveTab("new")}
                 className={`flex-1 py-3 text-sm font-black uppercase tracking-widest transition-colors ${activeTab === "new" ? "text-terracotta border-b-2 border-terracotta" : "text-muted-ash hover:text-light-gray"}`}
@@ -454,7 +454,7 @@ export default function Dashboard() {
                       <>
                         {/* ── New words today ── */}
                         {availableNewWords.length > 0 && (
-                          <div className="space-y-3">
+                          <div id="tour-new-words" className="space-y-3">
                             <div className="flex items-center gap-2">
                               <div className="w-5 h-5 rounded-full bg-terracotta/15 border border-terracotta/25 flex items-center justify-center text-terracotta">
                                 <NewWordIcon />
@@ -511,7 +511,7 @@ export default function Dashboard() {
 
                         {/* ── Due for Review subsection ── */}
                         {srsWords.length > 0 && (
-                          <div className="space-y-3 mt-4">
+                          <div id="tour-review-words" className="space-y-3 mt-4">
                             {/* Info card */}
                             <div className="bg-card-gray/60 border border-white/8 rounded-2xl px-4 py-3 flex items-start gap-3">
                               <div className="w-7 h-7 rounded-full bg-amber-500/15 border border-amber-500/30 flex items-center justify-center shrink-0 mt-0.5">
@@ -574,7 +574,6 @@ export default function Dashboard() {
                             </div>
                             <div className="text-center space-y-1">
                               <h3 className="text-base font-black text-light-gray">Naye words ho gaye!</h3>
-                              <p className="text-xs text-muted-ash">Ab review words ka time hai — neeche dekho.</p>
                             </div>
                           </div>
                         )}

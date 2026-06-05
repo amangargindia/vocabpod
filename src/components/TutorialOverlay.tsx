@@ -9,6 +9,7 @@ interface TutorialStep {
   title: string;
   message: string;
   highlight?: string; // CSS selector to spotlight
+  targetId?: string; // element ID to spotlight
   position: "top" | "bottom" | "center";
   stickmanPose: "pointing" | "waving" | "reading" | "thinking" | "dancing";
   tapTarget?: string; // text describing what to tap
@@ -17,89 +18,76 @@ interface TutorialStep {
 const STEPS: TutorialStep[] = [
   {
     id: "welcome",
-    title: "Namaste!",
+    title: "Welcome",
     message:
-      "Main hoon aapka VocabPod guide — ek chhota sa stickman! Main aapko poori app ke baare mein bataunga. Chalte hain!",
+      "Main hoon aapka VocabPod guide, ek chhota sa stickman! Main aapko poori app ke baare mein bataunga. Chalte hain!",
     position: "center",
     stickmanPose: "waving",
+    tapTarget: "Next →",
   },
   {
     id: "dashboard-tabs",
     title: "Yahan hai aapka daily plan",
     message:
-      "'Words for Today' tab mein woh words hain jo aaj seekhne hain — 5 naye words aur jo review ke liye due hain. 'Done for Now' mein woh words hain jo aap seekh chuke hain.",
+      "'Words for Today' tab mein woh words hain jo aaj seekhne hain. 'Done for Now' mein woh words hain jo aap seekh chuke hain.",
     position: "top",
     stickmanPose: "pointing",
-    tapTarget: "Neeche 'Got it!' button dabayein",
-  },
-  {
-    id: "new-words",
-    title: "Naye Words",
-    message:
-      "Yeh hain aaj ke naye words. Har word ek poori lesson ke saath aata hai — meaning, story, mnemonic image, real-life usage, aur quiz. Ek word par tap karein aur poora lesson dekhein!",
-    position: "bottom",
-    stickmanPose: "reading",
-    tapTarget: "Kisi bhi word card par tap karein",
-  },
-  {
-    id: "review-words",
-    title: "Review Words",
-    message:
-      "Yeh woh words hain jo aapne pehle seekhe the, lekin ab review ke liye aa gaye hain. Spaced Repetition system — yaani sahi waqt par dobarana padhna — memory ko pakka karta hai!",
-    position: "bottom",
-    stickmanPose: "thinking",
-    tapTarget: "'Got it!' dabayein aur aage badhein",
+    targetId: "tour-tabs",
+    tapTarget: "Next →",
   },
   {
     id: "daily-quota",
     title: "5 Words Roz!",
     message:
-      "VocabPod mein roz sirf 5 naye words hain — zyada nahi, kam nahi. Research kehti hai ki 5 words roz consistently karna, 50 words ek din mein padhne se kaafi zyada effective hai!",
+      "VocabPod mein roz sirf 5 naye words hain. Research kehti hai ki 5 words roz consistently karna kaafi zyada effective hai!",
     position: "top",
     stickmanPose: "pointing",
-    tapTarget: "'Got it!' dabayein",
+    targetId: "tour-daily-progress",
+    tapTarget: "Next →",
+  },
+  {
+    id: "new-words",
+    title: "Naye Words",
+    message:
+      "Yeh hain aaj ke naye words. Har word ek poori lesson ke saath aata hai: meaning, story, mnemonic image, real-life usage, aur quiz.",
+    position: "bottom",
+    stickmanPose: "reading",
+    targetId: "tour-new-words",
+    tapTarget: "Next →",
+  },
+  {
+    id: "review-words",
+    title: "Review Words",
+    message:
+      "Yeh woh words hain jo aapne pehle seekhe the, lekin ab review ke liye due hain. Spaced Repetition system memory ko pakka karta hai!",
+    position: "bottom",
+    stickmanPose: "thinking",
+    targetId: "tour-review-words",
+    tapTarget: "Next →",
   },
   {
     id: "lesson-flow",
     title: "Lesson Kaise Kaam Karta Hai?",
     message:
-      "Har lesson mein 7 cards hain: Word → Meaning → Story → Mnemonic Image → Real-Life Usage → Quiz → Complete! Quiz pass karein, toh word aapke review schedule mein add ho jaata hai.",
+      "Har lesson mein 7 cards hain: Word, Meaning, Story, Mnemonic Image, Real-Life Usage, Quiz, Complete! Quiz pass karein, toh word aapke review schedule mein add ho jaata hai.",
     position: "center",
     stickmanPose: "reading",
-    tapTarget: "'Got it!' dabayein",
+    tapTarget: "Next →",
   },
   {
     id: "spaced-repetition",
     title: "Memory Science!",
     message:
-      "Jab aap quiz sahi karein, word agle review ke liye door bhej diya jaata hai. Galat karein toh kal wapas aata hai. Yeh hai Spaced Repetition — duniya ki best memory technique!",
+      "Jab aap quiz sahi karein, word agle review ke liye door bhej diya jaata hai. Galat karein toh kal wapas aata hai. Yeh hai Spaced Repetition!",
     position: "center",
     stickmanPose: "dancing",
-    tapTarget: "'Got it!' dabayein",
-  },
-  {
-    id: "autoplay",
-    title: "Autoplay Mode",
-    message:
-      "Autoplay mein sab words ki audio sunai deti hai — walk karte hue, drive karte hue, ya so ne se pehle. Premium feature hai, lekin kaafi powerful hai passive learning ke liye!",
-    position: "center",
-    stickmanPose: "waving",
-    tapTarget: "'Got it!' dabayein",
-  },
-  {
-    id: "flashcards",
-    title: "Flashcards",
-    message:
-      "Flashcards mein sab words ki quick revision hoti hai — flip karke meaning dekhein. Active recall practice ke liye perfect hai!",
-    position: "center",
-    stickmanPose: "pointing",
-    tapTarget: "'Got it!' dabayein",
+    tapTarget: "Next →",
   },
   {
     id: "profile",
     title: "Aapka Profile",
     message:
-      "Profile mein apna naam set karein, leaderboard mein dikhne ke liye. Tutorial dubara dekhna ho toh Profile → 'Tutorial Dubara Dekho' button dabayein. Ab shuru karte hain — pehla word kholein!",
+      "Profile mein apna naam set karein. Tutorial dubara dekhna ho toh Profile mein 'Tutorial Dubara Dekho' button dabayein. Ab shuru karte hain, pehla word kholein!",
     position: "center",
     stickmanPose: "dancing",
     tapTarget: "Chalo shuru karte hain!",
@@ -205,6 +193,8 @@ export default function TutorialOverlay({ onComplete }: TutorialOverlayProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [visible, setVisible] = useState(false);
   const [animating, setAnimating] = useState(false);
+  const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
+  
   const step = STEPS[currentStep];
   const isLast = currentStep === STEPS.length - 1;
 
@@ -213,6 +203,35 @@ export default function TutorialOverlay({ onComplete }: TutorialOverlayProps) {
     const t = setTimeout(() => setVisible(true), 600);
     return () => clearTimeout(t);
   }, []);
+
+  useEffect(() => {
+    const updateRect = () => {
+      if (step.targetId) {
+        const el = document.getElementById(step.targetId);
+        if (el) {
+          setTargetRect(el.getBoundingClientRect());
+        } else {
+          setTargetRect(null);
+        }
+      } else {
+        setTargetRect(null);
+      }
+    };
+    updateRect();
+    
+    // Check periodically in case element renders late
+    const interval = setInterval(updateRect, 250);
+    window.addEventListener("resize", updateRect);
+    
+    // Disable scroll to prevent spotlight detachment
+    document.body.style.overflow = "hidden";
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("resize", updateRect);
+      document.body.style.overflow = "";
+    };
+  }, [step]);
 
   const advance = useCallback(() => {
     if (animating) return;
@@ -243,9 +262,20 @@ export default function TutorialOverlay({ onComplete }: TutorialOverlayProps) {
   return (
     <div
       className="fixed inset-0 z-[9999] flex items-end justify-center"
-      style={{ background: "rgba(0,0,0,0.82)", backdropFilter: "blur(4px)" }}
-      onClick={(e) => e.stopPropagation()}
+      onClick={(e) => e.stopPropagation()} // Block clicks to background
     >
+      {/* Background with spotlight */}
+      {targetRect ? (
+        <>
+          <div className="fixed inset-0 bg-absolute-black/85 pointer-events-none transition-opacity duration-300" 
+               style={{ clipPath: `polygon(0% 0%, 0% 100%, ${targetRect.left - 12}px 100%, ${targetRect.left - 12}px ${targetRect.top - 12}px, ${targetRect.right + 12}px ${targetRect.top - 12}px, ${targetRect.right + 12}px ${targetRect.bottom + 12}px, ${targetRect.left - 12}px ${targetRect.bottom + 12}px, ${targetRect.left - 12}px 100%, 100% 100%, 100% 0%)` }} />
+          {/* Subtle highlight ring around the hole */}
+          <div className="fixed border-2 border-terracotta/50 rounded-2xl pointer-events-none transition-all duration-300"
+               style={{ top: targetRect.top - 12, left: targetRect.left - 12, width: targetRect.width + 24, height: targetRect.height + 24, boxShadow: "0 0 30px rgba(224,75,53,0.3)" }} />
+        </>
+      ) : (
+        <div className="fixed inset-0 bg-absolute-black/85 transition-opacity duration-300 pointer-events-none backdrop-blur-sm" />
+      )}
       {/* Step dots progress */}
       <div className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10">
         {STEPS.map((_, i) => (
@@ -291,7 +321,15 @@ export default function TutorialOverlay({ onComplete }: TutorialOverlayProps) {
                 <div className="absolute bottom-4 -left-2 w-0 h-0 border-t-[6px] border-b-[6px] border-r-[8px] border-t-transparent border-b-transparent border-r-white/10" />
                 <div className="bg-white/5 border border-white/10 rounded-2xl px-4 py-4 space-y-2 text-center">
                   <p className="text-[10px] font-black text-terracotta uppercase tracking-widest mb-1">TUTORIAL</p>
-                  <p className="text-base font-black text-white">{step.title}</p>
+                  {step.title === "Welcome" ? (
+                    <p className="text-xl font-black text-white relative inline-block drop-shadow-[0_0_10px_#E04B35]">
+                      <span className="absolute -top-3 -left-4 text-xl animate-pulse">✨</span>
+                      {step.title}
+                      <span className="absolute -bottom-2 -right-4 text-xl animate-pulse delay-75">✨</span>
+                    </p>
+                  ) : (
+                    <p className="text-base font-black text-white">{step.title}</p>
+                  )}
                   <p className="text-sm text-light-gray/90 leading-relaxed font-medium">{step.message}</p>
                 </div>
               </div>
