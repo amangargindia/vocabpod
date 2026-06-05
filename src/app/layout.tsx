@@ -3,6 +3,7 @@ import { Inter, Lora, Outfit } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import PWAManager from "@/components/PWAManager";
+import SplashScreen from "@/components/SplashScreen";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -71,6 +72,7 @@ export default async function RootLayout({
         <link rel="apple-touch-startup-image" href="/icon-512" />
       </head>
       <body className={`flex flex-col md:flex-row min-h-full bg-absolute-black text-light-gray ${inter.className}`}>
+        <SplashScreen />
         <AuthProvider>
           {children}
           <PWAManager />
