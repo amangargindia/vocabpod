@@ -20,30 +20,31 @@ export default function Icon() {
       >
         <svg width="32" height="32" viewBox="0 0 32 32">
           <rect width="32" height="32" rx="7" fill="#0A0A0A" />
-          {/* Open book — left page */}
-          <path
-            d="M4 22 Q4 10 16 10 L16 26 Q10 24 4 26 Z"
+          {/* Outer V faint */}
+          <polyline
+            points="4,10 16,26 28,10"
             fill="none"
             stroke="#F5F5F7"
-            strokeWidth="1.4"
+            strokeWidth="1.5"
+            strokeLinecap="round"
             strokeLinejoin="round"
-            opacity="0.85"
+            opacity="0.4"
           />
-          {/* Open book — right page */}
-          <path
-            d="M28 22 Q28 10 16 10 L16 26 Q22 24 28 26 Z"
+          {/* Main V */}
+          <polyline
+            points="7,10 16,22 25,10"
             fill="none"
             stroke="#F5F5F7"
-            strokeWidth="1.4"
+            strokeWidth="2.5"
+            strokeLinecap="round"
             strokeLinejoin="round"
-            opacity="0.85"
           />
-          {/* Book spine line */}
-          <line x1="16" y1="10" x2="16" y2="26" stroke="#F5F5F7" strokeWidth="1" opacity="0.4" />
-          {/* Ball resting in the spine crease */}
-          <circle cx="16" cy="14" r="4.5" fill="#E04B35" />
-          {/* Shine on ball */}
-          <circle cx="14.5" cy="12.5" r="1.2" fill="rgba(255,255,255,0.3)" />
+          {/* Circle */}
+          <circle cx="16" cy="13" r="4" fill="#E04B35" />
+          {/* Rays */}
+          <line x1="10" y1="8" x2="7" y2="5" stroke="#E04B35" strokeWidth="1.5" strokeLinecap="round" />
+          <line x1="16" y1="7" x2="16" y2="3" stroke="#E04B35" strokeWidth="1.5" strokeLinecap="round" />
+          <line x1="22" y1="8" x2="25" y2="5" stroke="#E04B35" strokeWidth="1.5" strokeLinecap="round" />
         </svg>
       </div>
     ),

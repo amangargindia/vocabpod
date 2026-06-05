@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import * as Sentry from "@sentry/nextjs";
 
 interface BugReportModalProps {
   userId?: string;
@@ -12,6 +13,7 @@ export default function BugReportModal({ userId }: BugReportModalProps) {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const [status, setStatus] = useState<"idle" | "saving" | "saved">("idle");
+  const { user } = useAuth();
 
   const [mounted, setMounted] = useState(false);
 
@@ -23,11 +25,20 @@ export default function BugReportModal({ userId }: BugReportModalProps) {
     if (!text.trim()) return;
     setStatus("saving");
     try {
+      // 1. Submit to Sentry Feedback Dashboard (Client End)
+      Sentry.captureFeedback({ 
+        message: text, 
+        email: user?.email || undefined,
+        name: user?.email ? user.email.split("@")[0] : undefined 
+      });
+
+      // 2. Submit to Supabase for Admin Dashboard (Admin End)
       await fetch("/api/bugs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ description: text, user_id: userId }),
       });
+      
       setStatus("saved");
       setTimeout(() => { setOpen(false); setText(""); setStatus("idle"); }, 2000);
     } catch {

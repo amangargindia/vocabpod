@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { rateLimit } from "@/lib/rateLimit";
+import * as Sentry from "@sentry/nextjs";
 
 // We use service role to bypass RLS for inserting bug reports or let RLS handle it
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -32,8 +33,12 @@ export async function POST(req: Request) {
 
     if (error) {
       console.error("Error inserting bug report:", error);
+      Sentry.captureException(error);
       return NextResponse.json({ error: "Failed to submit bug report" }, { status: 500 });
     }
+
+    // We rely on the client-side Sentry.captureFeedback() for Sentry tracking
+    // so we don't duplicate it here as a regular "Issue".
 
     return NextResponse.json({ success: true, data }, { status: 201 });
   } catch (err: any) {
