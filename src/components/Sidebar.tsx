@@ -179,6 +179,7 @@ export default function Sidebar() {
             return (
               <Link
                 key={item.href}
+                id={`tour-${item.label.toLowerCase()}`}
                 href={item.href}
                 title={collapsed ? item.label : undefined}
                 className={`flex flex-col md:flex-row items-center justify-center md:justify-start space-y-1 md:space-y-0 md:space-x-3 flex-1 md:flex-none md:w-auto h-full md:h-auto px-1 md:px-3 md:py-2.5 md:rounded-xl font-semibold transition-all duration-200 group relative ${

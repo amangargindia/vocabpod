@@ -328,7 +328,7 @@ export default function Dashboard() {
                 </svg>
               </Link>
             )}
-            <Link href="/profile" className="w-8 h-8 rounded-full bg-card-gray border border-white/10 flex items-center justify-center text-xs font-bold text-muted-ash uppercase hover:text-light-gray hover:border-terracotta/50 transition-colors">
+            <Link id="tour-profile" href="/profile" className="w-8 h-8 rounded-full bg-card-gray border border-white/10 flex items-center justify-center text-xs font-bold text-muted-ash uppercase hover:text-light-gray hover:border-terracotta/50 transition-colors">
               {user?.email?.charAt(0) ?? "?"}
             </Link>
           </div>
@@ -421,7 +421,7 @@ export default function Dashboard() {
                   <>
                     {/* When all daily work is done: show blurred background with prominent stickman */}
                     {allDailyDone ? (
-                      <div className="rounded-3xl overflow-hidden border border-white/5 relative min-h-[280px]">
+                      <div id="tour-new-words" className="rounded-3xl overflow-hidden border border-white/5 relative min-h-[280px]">
                         {/* Blurred word list background — gives illusion of words in background */}
                         <div className="grid grid-cols-1 gap-2 blur-[4px] opacity-30 pointer-events-none select-none">
                           {[
@@ -510,63 +510,75 @@ export default function Dashboard() {
                         )}
 
                         {/* ── Due for Review subsection ── */}
-                        {srsWords.length > 0 && (
-                          <div id="tour-review-words" className="space-y-3 mt-4">
-                            {/* Info card */}
-                            <div className="bg-card-gray/60 border border-white/8 rounded-2xl px-4 py-3 flex items-start gap-3">
-                              <div className="w-7 h-7 rounded-full bg-amber-500/15 border border-amber-500/30 flex items-center justify-center shrink-0 mt-0.5">
+                        <div id="tour-review-words" className="space-y-3 mt-4">
+                          {srsWords.length > 0 ? (
+                            <>
+                              {/* Info card */}
+                              <div className="bg-card-gray/60 border border-white/8 rounded-2xl px-4 py-3 flex items-start gap-3">
+                                <div className="w-7 h-7 rounded-full bg-amber-500/15 border border-amber-500/30 flex items-center justify-center shrink-0 mt-0.5">
+                                  <ReviewWordIcon />
+                                </div>
+                                <div>
+                                  <p className="text-[10px] font-black uppercase tracking-widest text-amber-400/80 mb-0.5">Due for Review</p>
+                                  <p className="text-xs text-muted-ash leading-relaxed">
+                                    Ye words revise karne ke liye hain, taaki aap unhe ache se yaad rakho. Spaced repetition aapki memory ko pakka banata hai!
+                                  </p>
+                                </div>
+                              </div>
+
+                              {/* Section label */}
+                              <div className="flex items-center gap-2">
+                                <div className="w-5 h-5 rounded-full bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                                  <ReviewWordIcon />
+                                </div>
+                                <span className="text-[10px] font-black uppercase tracking-widest text-muted-ash">Due for review</span>
+                              </div>
+
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                                {srsWords.map((word) => (
+                                  <Link
+                                    key={word.id}
+                                    href={`/lesson/${word.word}`}
+                                    className="group flex items-center justify-between p-4 md:p-5 rounded-2xl border transition-all duration-300 min-w-0 bg-dark-blush border-amber-500/20 hover:border-amber-500/40 hover:shadow-[0_0_20px_rgba(245,158,11,0.08)]"
+                                  >
+                                    <div className="flex items-center space-x-3 md:space-x-4 min-w-0">
+                                      <div className="w-10 h-10 rounded-full flex items-center justify-center border shrink-0 bg-amber-500/10 border-amber-500/30 text-amber-400">
+                                        <ReviewWordIcon />
+                                      </div>
+                                      <div className="flex flex-col min-w-0 overflow-hidden">
+                                        <span className="text-lg font-bold tracking-tight group-hover:text-amber-400 transition-colors truncate">
+                                          {toTitleCase(word.word)}
+                                        </span>
+                                        <span className="text-xs text-muted-ash mt-0.5 truncate w-full block">
+                                          {word.definition}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <div className="hidden xl:flex items-center ml-2 shrink-0">
+                                      <span className="text-[10px] font-bold uppercase tracking-widest text-amber-400/60 group-hover:text-amber-400 transition-colors">
+                                        Review &rarr;
+                                      </span>
+                                    </div>
+                                  </Link>
+                                ))}
+                              </div>
+                            </>
+                          ) : (
+                            <div className="bg-card-gray border border-white/5 rounded-2xl px-5 py-6 flex flex-col items-center justify-center text-center space-y-3">
+                              <div className="w-10 h-10 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 opacity-80">
                                 <ReviewWordIcon />
                               </div>
                               <div>
-                                <p className="text-[10px] font-black uppercase tracking-widest text-amber-400/80 mb-0.5">Due for Review</p>
-                                <p className="text-xs text-muted-ash leading-relaxed">
-                                  Ye words revise karne ke liye hain, taaki aap unhe ache se yaad rakho. Spaced repetition aapki memory ko pakka banata hai!
-                                </p>
+                                <p className="text-sm font-bold text-light-gray">No reviews pending</p>
+                                <p className="text-xs text-muted-ash mt-1">Complete your new words and they'll appear here tomorrow.</p>
                               </div>
                             </div>
-
-                            {/* Section label */}
-                            <div className="flex items-center gap-2">
-                              <div className="w-5 h-5 rounded-full bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
-                                <ReviewWordIcon />
-                              </div>
-                              <span className="text-[10px] font-black uppercase tracking-widest text-muted-ash">Due for review</span>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-                              {srsWords.map((word) => (
-                                <Link
-                                  key={word.id}
-                                  href={`/lesson/${word.word}`}
-                                  className="group flex items-center justify-between p-4 md:p-5 rounded-2xl border transition-all duration-300 min-w-0 bg-dark-blush border-amber-500/20 hover:border-amber-500/40 hover:shadow-[0_0_20px_rgba(245,158,11,0.08)]"
-                                >
-                                  <div className="flex items-center space-x-3 md:space-x-4 min-w-0">
-                                    <div className="w-10 h-10 rounded-full flex items-center justify-center border shrink-0 bg-amber-500/10 border-amber-500/30 text-amber-400">
-                                      <ReviewWordIcon />
-                                    </div>
-                                    <div className="flex flex-col min-w-0 overflow-hidden">
-                                      <span className="text-lg font-bold tracking-tight group-hover:text-amber-400 transition-colors truncate">
-                                        {toTitleCase(word.word)}
-                                      </span>
-                                      <span className="text-xs text-muted-ash mt-0.5 truncate w-full block">
-                                        {word.definition}
-                                      </span>
-                                    </div>
-                                  </div>
-                                  <div className="hidden xl:flex items-center ml-2 shrink-0">
-                                    <span className="text-[10px] font-bold uppercase tracking-widest text-amber-400/60 group-hover:text-amber-400 transition-colors">
-                                      Review &rarr;
-                                    </span>
-                                  </div>
-                                </Link>
-                              ))}
-                            </div>
-                          </div>
-                        )}
+                          )}
+                        </div>
 
                         {/* When new words done but review still pending */}
                         {availableNewWords.length === 0 && srsWords.length > 0 && (
-                          <div className="py-6 flex flex-col items-center justify-center space-y-3">
+                          <div id="tour-new-words" className="py-6 flex flex-col items-center justify-center space-y-3">
                             <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
                               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6 text-emerald-400">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4" />

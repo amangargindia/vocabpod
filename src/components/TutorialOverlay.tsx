@@ -56,6 +56,16 @@ const STEPS: TutorialStep[] = [
     tapTarget: "Next →",
   },
   {
+    id: "lesson-flow",
+    title: "Lesson Kaise Kaam Karta Hai?",
+    message:
+      "Har lesson mein 7 cards hain: Word, Meaning, Story, Mnemonic Image, Real-Life Usage, Quiz, Complete! Quiz pass karein, toh word aapke review schedule mein add ho jaata hai.",
+    position: "center",
+    stickmanPose: "reading",
+    targetId: "tour-new-words", // point to the lesson card again
+    tapTarget: "Next →",
+  },
+  {
     id: "review-words",
     title: "Review Words",
     message:
@@ -66,21 +76,43 @@ const STEPS: TutorialStep[] = [
     tapTarget: "Next →",
   },
   {
-    id: "lesson-flow",
-    title: "Lesson Kaise Kaam Karta Hai?",
-    message:
-      "Har lesson mein 7 cards hain: Word, Meaning, Story, Mnemonic Image, Real-Life Usage, Quiz, Complete! Quiz pass karein, toh word aapke review schedule mein add ho jaata hai.",
-    position: "center",
-    stickmanPose: "reading",
-    tapTarget: "Next →",
-  },
-  {
     id: "spaced-repetition",
     title: "Memory Science!",
     message:
       "Jab aap quiz sahi karein, word agle review ke liye door bhej diya jaata hai. Galat karein toh kal wapas aata hai. Yeh hai Spaced Repetition!",
     position: "center",
     stickmanPose: "dancing",
+    targetId: "tour-review-words", // point to review words
+    tapTarget: "Next →",
+  },
+  {
+    id: "leaderboard",
+    title: "Leaderboard",
+    message:
+      "Leaderboard pe check karein ki aap dusre students se kahan stand karte hain. Roz words poore karein aur points kamayein!",
+    position: "bottom",
+    stickmanPose: "pointing",
+    targetId: "tour-leaderboard",
+    tapTarget: "Next →",
+  },
+  {
+    id: "autoplay",
+    title: "Autoplay Mode",
+    message:
+      "Autoplay mein sab words ki audio sunai deti hai. Walk karte hue, drive karte hue, ya sone se pehle — passive learning ke liye perfect!",
+    position: "bottom",
+    stickmanPose: "waving",
+    targetId: "tour-autoplay",
+    tapTarget: "Next →",
+  },
+  {
+    id: "flashcards",
+    title: "Flashcards",
+    message:
+      "Flashcards mein quick revision hoti hai — flip karke meaning dekhein. Active recall practice ke liye sabse best!",
+    position: "bottom",
+    stickmanPose: "thinking",
+    targetId: "tour-flashcards",
     tapTarget: "Next →",
   },
   {
@@ -90,6 +122,7 @@ const STEPS: TutorialStep[] = [
       "Profile mein apna naam set karein. Tutorial dubara dekhna ho toh Profile mein 'Tutorial Dubara Dekho' button dabayein. Ab shuru karte hain, pehla word kholein!",
     position: "center",
     stickmanPose: "dancing",
+    targetId: "tour-profile",
     tapTarget: "Chalo shuru karte hain!",
   },
 ];
