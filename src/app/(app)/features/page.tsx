@@ -303,28 +303,6 @@ export default function FeaturesPage() {
           />
         </section>
 
-        {/* Footer CTA */}
-        <section className="px-6 md:px-16 pb-20">
-          <div className="max-w-4xl mx-auto bg-dark-blush border border-terracotta/20 rounded-3xl p-10 text-center space-y-5">
-            <h2 className="text-3xl font-black text-light-gray tracking-tight">Ready to own your vocabulary?</h2>
-            <p className="text-muted-ash">Start with free words, upgrade when you are ready for all six methods at once.</p>
-            {!isLoadingAuth && !isPremium ? (
-              <Link
-                href="/upgrade"
-                className="inline-block bg-terracotta text-light-gray font-bold px-8 py-3.5 rounded-full uppercase tracking-widest text-sm hover:shadow-[0_0_30px_rgba(224,75,53,0.4)] hover:-translate-y-0.5 transition-all"
-              >
-                Upgrade to Premium
-              </Link>
-            ) : (
-              <Link
-                href="/"
-                className="inline-block bg-white/10 text-light-gray font-bold px-8 py-3.5 rounded-full uppercase tracking-widest text-sm hover:bg-white/20 transition-all"
-              >
-                Go to Dashboard
-              </Link>
-            )}
-          </div>
-        </section>
       </div>
     </div>
   );

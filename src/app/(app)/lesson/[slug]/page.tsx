@@ -12,6 +12,13 @@ const Stickman = dynamic(() => import("@/components/Stickman"), { ssr: false });
 import Logo from "@/components/Logo";
 import { cleanSvgString } from "@/lib/svgUtils";
 import { useSwipe } from "@/hooks/useSwipe";
+import { getTodayIST, toISTDateString } from "@/lib/dateUtils";
+
+/** Convert a word string to Title Case */
+function toTitleCase(str: string) {
+  if (!str) return str;
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
 
 // ─── SVG Node Renderer ─────────────────────────────────────────────────────────
 
@@ -300,6 +307,7 @@ export default function LessonPage({ params }: { params: any }) {
   const [error, setError] = useState<string | null>(null);
   const { user, isPremium, isLoadingAuth } = useAuth();
   const [nextWordSlug, setNextWordSlug] = useState<string | null>(null);
+  const [allWords, setAllWords] = useState<any[]>([]);
   const [shuffledOptions, setShuffledOptions] = useState<any[]>([]);
 
   // ── Audio State ──────────────────────────────────────────────────────────────
@@ -319,7 +327,7 @@ export default function LessonPage({ params }: { params: any }) {
   const [isFirstCompletion, setIsFirstCompletion] = useState(false);
   const [quizPassed, setQuizPassed] = useState<boolean | null>(null);
 
-  const { markWordCompleted, syncWordSRS } = useVocabProgress(user?.id, !isLoadingAuth);
+  const { markWordCompleted, syncWordSRS, stats, isLoaded } = useVocabProgress(user?.id, !isLoadingAuth);
 
   // ── Text Size State ──────────────────────────────────────────────────────────
   const [textSize, setTextSize] = useState<"sm" | "base" | "lg" | "xl">("base");
@@ -382,12 +390,13 @@ export default function LessonPage({ params }: { params: any }) {
         setLesson(lessonData);
 
         const data = await res.json();
-        const allWords = data.words || [];
-        const currentIndex = allWords.findIndex(
+        const words = data.words || [];
+        setAllWords(words);
+        const currentIndex = words.findIndex(
           (w: any) => w.word.toLowerCase() === lessonData.word.toLowerCase()
         );
-        if (currentIndex !== -1 && currentIndex < allWords.length - 1) {
-          setNextWordSlug(allWords[currentIndex + 1].word);
+        if (currentIndex !== -1 && currentIndex < words.length - 1) {
+          setNextWordSlug(words[currentIndex + 1].word);
         }
 
         const q = lessonData.quiz_questions[0];
@@ -617,6 +626,15 @@ export default function LessonPage({ params }: { params: any }) {
 
   const CARD_LABELS = ["Word", "Meaning", "Story", "Mnemonic", "Usage", "Quiz", "Complete"];
 
+  // Daily word limit tracking
+  const today = getTodayIST();
+  const newWordsCompletedToday = isLoaded
+    ? Object.values(stats.progressList).filter(
+        (p) => p.first_completed_at && toISTDateString(p.first_completed_at) === today
+      ).length
+    : 0;
+  const dailyLimitReached = newWordsCompletedToday >= 5;
+
   // ── Slide Transform ──────────────────────────────────────────────────────────
   const getSlideStyle = (): React.CSSProperties => {
     if (!isAnimating || !slideDir) return {};
@@ -660,8 +678,8 @@ export default function LessonPage({ params }: { params: any }) {
             <span className="inline-block text-xs font-bold uppercase tracking-widest px-4 py-1.5 bg-dark-blush text-terracotta rounded-full border border-terracotta/20">
               {lesson.type}
             </span>
-            <h1 className="text-5xl md:text-7xl font-black tracking-tight text-light-gray uppercase">
-              {lesson.word}
+            <h1 className="text-5xl md:text-7xl font-black tracking-tight text-light-gray">
+              {toTitleCase(lesson.word)}
             </h1>
             <p className="text-xl md:text-2xl text-muted-ash italic font-sans">{lesson.phonetic}</p>
           </div>
@@ -1073,15 +1091,14 @@ export default function LessonPage({ params }: { params: any }) {
 
   // Card 6: Completion
   const renderCard6 = () => (
-    <div className="relative space-y-8 text-center overflow-hidden">
+    <div className="relative space-y-6 text-center overflow-hidden">
       <ConfettiParticles />
-      <div className="relative z-10 space-y-6">
+      <div className="relative z-10 space-y-5">
         <SectionBadge label="Complete!" />
 
         <div className="flex justify-center">
           <div className="bg-deep-canvas p-6 rounded-3xl border border-terracotta/20 shadow-[0_0_40px_rgba(224,75,53,0.15)] overflow-hidden">
             <div className="relative w-28 h-28 md:w-36 md:h-36 flex items-center justify-center">
-              {/* Stars exploding animation */}
               <svg className="absolute inset-0 w-full h-full animate-[spin_4s_linear_infinite]" viewBox="0 0 100 100">
                 <path d="M50 10 L55 35 L80 40 L55 45 L50 70 L45 45 L20 40 L45 35 Z" fill="#E04B35" className="animate-pulse" />
                 <circle cx="20" cy="20" r="3" fill="#FFF" className="animate-ping" />
@@ -1089,21 +1106,14 @@ export default function LessonPage({ params }: { params: any }) {
                 <circle cx="20" cy="80" r="4" fill="#FFF" className="animate-ping" style={{animationDelay: '1s'}} />
                 <circle cx="80" cy="80" r="2" fill="#E04B35" className="animate-ping" style={{animationDelay: '0.2s'}} />
               </svg>
-              
-              {/* Cute Jumping Stickman SVG */}
               <svg className="w-20 h-20 md:w-28 md:h-28 relative z-10 animate-[bounce_1s_infinite]" viewBox="0 0 100 100" stroke="#FFF" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" fill="none">
-                {/* Head */}
                 <circle cx="50" cy="30" r="14" fill="#E04B35" stroke="none" />
-                {/* Happy Face */}
                 <path d="M44 26 Q47 23 50 26" stroke="#FFF" strokeWidth="2.5" />
                 <path d="M56 26 Q53 23 50 26" stroke="#FFF" strokeWidth="2.5" />
                 <path d="M45 32 Q50 38 55 32" stroke="#FFF" strokeWidth="2.5" fill="none" />
-                {/* Body */}
                 <path d="M50 44 L50 65" />
-                {/* Arms jumping up */}
                 <path d="M50 48 L25 25" />
                 <path d="M50 48 L75 25" />
-                {/* Legs jumping up/bent */}
                 <path d="M50 65 L30 85 L25 70" />
                 <path d="M50 65 L70 85 L75 70" />
               </svg>
@@ -1112,32 +1122,51 @@ export default function LessonPage({ params }: { params: any }) {
         </div>
 
         <div className="space-y-2">
-          <h2 className="text-3xl md:text-4xl font-black text-light-gray uppercase tracking-tight">
+          <h2 className="text-3xl md:text-4xl font-black text-light-gray tracking-tight">
             Word Mastered!
           </h2>
           <p className="text-muted-ash text-sm md:text-base">
             You&apos;ve completed the lesson for{" "}
-            <span className="text-terracotta font-bold">{lesson.word}</span>
+            <span className="text-terracotta font-bold">{toTitleCase(lesson.word)}</span>
           </p>
         </div>
 
+        {/* Daily words progress bar */}
+        <div className="bg-deep-canvas border border-white/8 rounded-2xl px-4 py-3 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-black uppercase tracking-widest text-muted-ash">Words for the day</span>
+            <span className="text-xs font-black text-light-gray">{Math.min(5, newWordsCompletedToday)} / 5</span>
+          </div>
+          <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
+            <div
+              className="h-full bg-terracotta rounded-full transition-all duration-700 shadow-[0_0_8px_rgba(224,75,53,0.4)]"
+              style={{ width: `${Math.min(100, Math.round((newWordsCompletedToday / 5) * 100))}%` }}
+            />
+          </div>
+          {newWordsCompletedToday >= 5 ? (
+            <p className="text-[10px] text-emerald-400 font-bold">Daily goal complete — kal phir milenge!</p>
+          ) : (
+            <p className="text-[10px] text-muted-ash/70 font-bold">{5 - newWordsCompletedToday} more words to go today</p>
+          )}
+        </div>
+
         {/* Stats row */}
-        <div className="flex items-center justify-center gap-4 flex-wrap">
+        <div className="flex items-center justify-center gap-3 flex-wrap">
           {xpEarned > 0 && (
             <div className="bg-amber-950/30 border border-amber-500/20 px-4 py-2 rounded-2xl">
-              <p className="text-[10px] text-amber-400/70 uppercase tracking-widest font-bold">XP Earned</p>
+              <p className="text-[10px] text-amber-400/70 uppercase tracking-widest font-bold">Xp earned</p>
               <p className="text-2xl font-black text-amber-400">+{xpEarned}</p>
             </div>
           )}
           {nextReviewDays !== null && (
             <div className="bg-deep-canvas border border-white/10 px-4 py-2 rounded-2xl">
-              <p className="text-[10px] text-muted-ash uppercase tracking-widest font-bold">Next Review</p>
+              <p className="text-[10px] text-muted-ash uppercase tracking-widest font-bold">Next review</p>
               <p className="text-2xl font-black text-light-gray">{nextReviewDays === 1 ? "Tomorrow" : `${nextReviewDays}d`}</p>
             </div>
           )}
           <div className="bg-deep-canvas border border-emerald-500/20 px-4 py-2 rounded-2xl">
             <p className="text-[10px] text-emerald-400/70 uppercase tracking-widest font-bold">Status</p>
-            <p className="text-2xl font-black text-emerald-400">{quizPassed ? "✓ Learned" : "Reviewed"}</p>
+            <p className="text-2xl font-black text-emerald-400">{quizPassed ? "Learned" : "Reviewed"}</p>
           </div>
         </div>
 
@@ -1147,15 +1176,20 @@ export default function LessonPage({ params }: { params: any }) {
             href="/"
             className="flex-1 py-4 bg-white/5 border border-white/10 rounded-2xl font-bold text-sm uppercase tracking-widest text-light-gray hover:bg-white/10 transition-all text-center"
           >
-            ← Back to Dashboard
+            Back to Dashboard
           </Link>
-          {nextWordSlug && (
+          {nextWordSlug && !dailyLimitReached && (
             <Link
               href={`/lesson/${nextWordSlug}`}
               className="flex-1 py-4 bg-terracotta rounded-2xl font-bold text-sm uppercase tracking-widest text-white hover:shadow-[0_0_20px_rgba(224,75,53,0.4)] transition-all text-center"
             >
-              Next Word →
+              Next word
             </Link>
+          )}
+          {dailyLimitReached && (
+            <div className="flex-1 py-4 bg-white/5 border border-white/8 rounded-2xl text-sm font-bold uppercase tracking-widest text-muted-ash text-center cursor-not-allowed">
+              5 words done for today
+            </div>
           )}
         </div>
       </div>
@@ -1357,6 +1391,11 @@ export default function LessonPage({ params }: { params: any }) {
                       </svg>
                     )}
                   </button>
+                  {/* Word name as song title */}
+                  <div className="flex flex-col min-w-0 shrink-0 w-16 md:w-20">
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-muted-ash/60 truncate">Now playing</span>
+                    <span className="text-[10px] font-black text-light-gray truncate">{toTitleCase(lesson.word)}</span>
+                  </div>
                   <div className="flex-1 flex items-center gap-3">
                     <input
                       type="range"

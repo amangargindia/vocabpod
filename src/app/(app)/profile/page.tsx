@@ -309,6 +309,19 @@ export default function ProfilePage() {
               </Link>
             )}
             <button
+              onClick={() => {
+                localStorage.removeItem("vocabpod_tutorial_seen");
+                window.location.href = "/";
+              }}
+              className="w-full bg-white/5 border border-white/10 text-muted-ash font-bold py-4 rounded-xl hover:bg-white/10 hover:text-light-gray transition-colors uppercase tracking-wider text-sm flex items-center justify-center gap-2"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                <path d="M3 3v5h5" />
+              </svg>
+              Tutorial dubara dekho
+            </button>
+            <button
               onClick={handleSignOut}
               className="w-full bg-dark-blush border border-terracotta/30 text-terracotta font-bold py-4 rounded-xl hover:bg-terracotta hover:text-light-gray transition-colors uppercase tracking-wider text-sm"
             >

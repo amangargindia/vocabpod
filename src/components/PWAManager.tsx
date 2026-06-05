@@ -175,12 +175,15 @@ export default function PWAManager() {
               <div className="w-16 h-16 shrink-0 rounded-2xl bg-absolute-black border border-white/10 flex items-center justify-center shadow-inner">
                 <svg viewBox="0 0 48 48" className="w-10 h-10">
                   <rect width="48" height="48" rx="10" fill="#0A0A0A" />
-                  <polyline points="6,16 24,38 42,16" fill="none" stroke="#F5F5F7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.5" />
-                  <polyline points="10,16 24,33 38,16" fill="none" stroke="#F5F5F7" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
-                  <circle cx="24" cy="22" r="6" fill="#E04B35" />
-                  <line x1="18" y1="15" x2="15" y2="11" stroke="#E04B35" strokeWidth="2" strokeLinecap="round" />
-                  <line x1="24" y1="13" x2="24" y2="8" stroke="#E04B35" strokeWidth="2" strokeLinecap="round" />
-                  <line x1="30" y1="15" x2="33" y2="11" stroke="#E04B35" strokeWidth="2" strokeLinecap="round" />
+                  {/* Open book — left page */}
+                  <path d="M5 38 Q5 18 20 16 L20 40 Q13 38 5 40 Z" fill="none" stroke="#F5F5F7" strokeWidth="1.8" strokeLinejoin="round" opacity="0.85" />
+                  {/* Open book — right page */}
+                  <path d="M43 38 Q43 18 28 16 L28 40 Q35 38 43 40 Z" fill="none" stroke="#F5F5F7" strokeWidth="1.8" strokeLinejoin="round" opacity="0.85" />
+                  {/* Spine */}
+                  <line x1="24" y1="16" x2="24" y2="40" stroke="#F5F5F7" strokeWidth="1" opacity="0.35" />
+                  {/* Ball resting in spine */}
+                  <circle cx="24" cy="22" r="7" fill="#E04B35" />
+                  <circle cx="21.5" cy="19.5" r="2" fill="rgba(255,255,255,0.28)" />
                 </svg>
               </div>
 
