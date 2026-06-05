@@ -259,6 +259,17 @@ export default function TutorialOverlay({ onComplete }: TutorialOverlayProps) {
     // Disable scroll to prevent spotlight detachment
     document.body.style.overflow = "hidden";
     
+    // Scroll the target into view so it's comfortably at the top, leaving room for the box at the bottom
+    if (step.targetId) {
+      const el = document.getElementById(step.targetId);
+      if (el) {
+        const y = el.getBoundingClientRect().top + window.scrollY - 100; // 100px offset for sticky header
+        window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+      }
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    
     return () => {
       clearInterval(interval);
       window.removeEventListener("resize", updateRect);
@@ -323,7 +334,7 @@ export default function TutorialOverlay({ onComplete }: TutorialOverlayProps) {
         <div className="fixed inset-0 bg-absolute-black/85 transition-opacity duration-300 pointer-events-none backdrop-blur-sm" />
       )}
       {/* Step dots progress */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10">
+      <div className="absolute top-6 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10">
         {STEPS.map((_, i) => (
           <div
             key={i}
@@ -333,14 +344,6 @@ export default function TutorialOverlay({ onComplete }: TutorialOverlayProps) {
           />
         ))}
       </div>
-
-      {/* Skip button */}
-      <button
-        onClick={skip}
-        className="absolute top-4 right-4 text-[10px] font-bold uppercase tracking-widest text-muted-ash hover:text-light-gray transition-colors px-3 py-1.5 rounded-full bg-white/5 border border-white/10"
-      >
-        Skip
-      </button>
 
       {/* Main card */}
       <div
@@ -389,13 +392,21 @@ export default function TutorialOverlay({ onComplete }: TutorialOverlayProps) {
               />
             </div>
 
-            {/* CTA button */}
-            <button
-              onClick={advance}
-              className="w-full py-3.5 bg-terracotta text-white font-black text-xs uppercase tracking-widest rounded-2xl hover:shadow-[0_0_20px_rgba(224,75,53,0.5)] transition-all active:scale-95 mt-2"
-            >
-              {isLast ? "Chalo shuru karte hain!" : step.tapTarget || "Got it! Aage badho →"}
-            </button>
+            {/* CTA buttons */}
+            <div className="flex gap-2 mt-2">
+              <button
+                onClick={skip}
+                className="flex-1 py-3.5 bg-white/5 text-muted-ash hover:text-white font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-white/10 transition-all active:scale-95 border border-white/5"
+              >
+                Skip
+              </button>
+              <button
+                onClick={advance}
+                className="flex-[2] py-3.5 bg-terracotta text-white font-black text-xs uppercase tracking-widest rounded-2xl hover:shadow-[0_0_20px_rgba(224,75,53,0.5)] transition-all active:scale-95"
+              >
+                {isLast ? "Chalo shuru karte hain!" : step.tapTarget || "Got it! Aage badho →"}
+              </button>
+            </div>
 
             <p className="text-center text-[10px] text-muted-ash/50">
               Step {currentStep + 1} of {STEPS.length}
