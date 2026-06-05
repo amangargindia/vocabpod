@@ -99,7 +99,7 @@ const STEPS: TutorialStep[] = [
     id: "autoplay",
     title: "Autoplay Mode",
     message:
-      "Autoplay mein sab words ki audio sunai deti hai. Walk karte hue, drive karte hue, ya sone se pehle — passive learning ke liye perfect!",
+      "Autoplay mein sab words ki audio sunai deti hai. Walk karte hue, drive karte hue, ya sone se pehle, passive learning ke liye perfect!",
     position: "bottom",
     stickmanPose: "waving",
     targetId: "tour-autoplay",
@@ -109,7 +109,7 @@ const STEPS: TutorialStep[] = [
     id: "flashcards",
     title: "Flashcards",
     message:
-      "Flashcards mein quick revision hoti hai — flip karke meaning dekhein. Active recall practice ke liye sabse best!",
+      "Flashcards mein quick revision hoti hai. Flip karke meaning dekhein, active recall practice ke liye sabse best!",
     position: "bottom",
     stickmanPose: "thinking",
     targetId: "tour-flashcards",
@@ -292,9 +292,22 @@ export default function TutorialOverlay({ onComplete }: TutorialOverlayProps) {
 
   const progress = ((currentStep + 1) / STEPS.length) * 100;
 
+  // Dynamically position the box so it doesn't overlap the target element
+  let boxPosition = step.position || "center";
+  if (targetRect && typeof window !== "undefined") {
+    const screenCenter = window.innerHeight / 2;
+    const targetCenter = targetRect.top + targetRect.height / 2;
+    // If target is in the top half, push the box to the bottom. Otherwise, push it to the top.
+    boxPosition = targetCenter < screenCenter ? "bottom" : "top";
+  }
+
   return (
     <div
-      className="fixed inset-0 z-[9999] flex items-end justify-center"
+      className={`fixed inset-0 z-[9999] flex justify-center transition-all duration-500 ease-in-out ${
+        boxPosition === "top" ? "items-start pt-28" :
+        boxPosition === "center" ? "items-center" :
+        "items-end pb-8"
+      }`}
       onClick={(e) => e.stopPropagation()} // Block clicks to background
     >
       {/* Background with spotlight */}
@@ -331,7 +344,7 @@ export default function TutorialOverlay({ onComplete }: TutorialOverlayProps) {
 
       {/* Main card */}
       <div
-        className="w-full max-w-sm mx-4 mb-8"
+        className="w-full max-w-sm mx-4 transition-all duration-500 ease-in-out"
         style={{
           transform: animating ? "translateY(20px)" : "translateY(0)",
           opacity: animating ? 0 : 1,
