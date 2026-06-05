@@ -17,92 +17,92 @@ interface TutorialStep {
 const STEPS: TutorialStep[] = [
   {
     id: "welcome",
-    title: "Namaste! 👋",
+    title: "Namaste!",
     message:
-      "Main hoon tumhara VocabPod guide — ek chhota sa stickman! Main tumhe poori app ke baare mein bataunga. Chalte hain!",
+      "Main hoon aapka VocabPod guide — ek chhota sa stickman! Main aapko poori app ke baare mein bataunga. Chalte hain!",
     position: "center",
     stickmanPose: "waving",
   },
   {
     id: "dashboard-tabs",
-    title: "Yahan hai tumhara daily plan!",
+    title: "Yahan hai aapka daily plan",
     message:
-      "'Words for Today' tab mein woh words hain jo aaj seekhne hain — 5 naye words aur jo review ke liye due hain. 'Done for Now' mein woh words hain jo tum seekh chuke ho.",
+      "'Words for Today' tab mein woh words hain jo aaj seekhne hain — 5 naye words aur jo review ke liye due hain. 'Done for Now' mein woh words hain jo aap seekh chuke hain.",
     position: "top",
     stickmanPose: "pointing",
-    tapTarget: "Neeche 'Got it!' button dabao",
+    tapTarget: "Neeche 'Got it!' button dabayein",
   },
   {
     id: "new-words",
-    title: "Naye Words 📚",
+    title: "Naye Words",
     message:
-      "Yeh hain aaj ke naye words. Har word ek poori lesson ke saath aata hai — meaning, story, mnemonic image, real-life usage, aur quiz. Ek word par tap karo aur poora lesson dekho!",
+      "Yeh hain aaj ke naye words. Har word ek poori lesson ke saath aata hai — meaning, story, mnemonic image, real-life usage, aur quiz. Ek word par tap karein aur poora lesson dekhein!",
     position: "bottom",
     stickmanPose: "reading",
-    tapTarget: "Kisi bhi word card par tap karo",
+    tapTarget: "Kisi bhi word card par tap karein",
   },
   {
     id: "review-words",
-    title: "Review Words 🔄",
+    title: "Review Words",
     message:
-      "Yeh woh words hain jo tumne pehle seekhe the, lekin ab review ke liye aa gaye hain. Spaced Repetition system — yaani sahi waqt par dobarana padhna — memory ko pakka karta hai!",
+      "Yeh woh words hain jo aapne pehle seekhe the, lekin ab review ke liye aa gaye hain. Spaced Repetition system — yaani sahi waqt par dobarana padhna — memory ko pakka karta hai!",
     position: "bottom",
     stickmanPose: "thinking",
-    tapTarget: "'Got it!' dabao aur aage badho",
+    tapTarget: "'Got it!' dabayein aur aage badhein",
   },
   {
     id: "daily-quota",
-    title: "5 Words Roz! 🎯",
+    title: "5 Words Roz!",
     message:
       "VocabPod mein roz sirf 5 naye words hain — zyada nahi, kam nahi. Research kehti hai ki 5 words roz consistently karna, 50 words ek din mein padhne se kaafi zyada effective hai!",
     position: "top",
     stickmanPose: "pointing",
-    tapTarget: "'Got it!' dabao",
+    tapTarget: "'Got it!' dabayein",
   },
   {
     id: "lesson-flow",
-    title: "Lesson Kaise Kaam Karta Hai? 🧠",
+    title: "Lesson Kaise Kaam Karta Hai?",
     message:
-      "Har lesson mein 7 cards hain: Word → Meaning → Story → Mnemonic Image → Real-Life Usage → Quiz → Complete! Quiz pass karo, toh word tumhare review schedule mein add ho jaata hai.",
+      "Har lesson mein 7 cards hain: Word → Meaning → Story → Mnemonic Image → Real-Life Usage → Quiz → Complete! Quiz pass karein, toh word aapke review schedule mein add ho jaata hai.",
     position: "center",
     stickmanPose: "reading",
-    tapTarget: "'Got it!' dabao",
+    tapTarget: "'Got it!' dabayein",
   },
   {
     id: "spaced-repetition",
-    title: "Memory Science! ⚡",
+    title: "Memory Science!",
     message:
-      "Jab tum quiz sahi karo, word agle review ke liye door bhej diya jaata hai (2 din, phir 5, phir 10...). Galat karo toh kal wapas aata hai. Yeh hai Spaced Repetition — duniya ki best memory technique!",
+      "Jab aap quiz sahi karein, word agle review ke liye door bhej diya jaata hai. Galat karein toh kal wapas aata hai. Yeh hai Spaced Repetition — duniya ki best memory technique!",
     position: "center",
     stickmanPose: "dancing",
-    tapTarget: "'Got it!' dabao",
+    tapTarget: "'Got it!' dabayein",
   },
   {
     id: "autoplay",
-    title: "Autoplay Mode 🎧",
+    title: "Autoplay Mode",
     message:
       "Autoplay mein sab words ki audio sunai deti hai — walk karte hue, drive karte hue, ya so ne se pehle. Premium feature hai, lekin kaafi powerful hai passive learning ke liye!",
     position: "center",
     stickmanPose: "waving",
-    tapTarget: "'Got it!' dabao",
+    tapTarget: "'Got it!' dabayein",
   },
   {
     id: "flashcards",
-    title: "Flashcards 🃏",
+    title: "Flashcards",
     message:
-      "Flashcards mein sab words ki quick revision hoti hai — flip karke meaning dekho. Active recall practice ke liye perfect hai!",
+      "Flashcards mein sab words ki quick revision hoti hai — flip karke meaning dekhein. Active recall practice ke liye perfect hai!",
     position: "center",
     stickmanPose: "pointing",
-    tapTarget: "'Got it!' dabao",
+    tapTarget: "'Got it!' dabayein",
   },
   {
     id: "profile",
-    title: "Tera Profile 👤",
+    title: "Aapka Profile",
     message:
-      "Profile mein apna naam set karo, leaderboard mein dikhne ke liye. Tutorial dubara dekhna ho toh Profile → 'Tutorial Dubara Dekho' button dabao. Ab shuru karte hain — pehla word kholo!",
+      "Profile mein apna naam set karein, leaderboard mein dikhne ke liye. Tutorial dubara dekhna ho toh Profile → 'Tutorial Dubara Dekho' button dabayein. Ab shuru karte hain — pehla word kholein!",
     position: "center",
     stickmanPose: "dancing",
-    tapTarget: "Chalo shuru karte hain! 🚀",
+    tapTarget: "Chalo shuru karte hain!",
   },
 ];
 
@@ -289,15 +289,16 @@ export default function TutorialOverlay({ onComplete }: TutorialOverlayProps) {
               <div className="flex-1 relative">
                 {/* Bubble tail */}
                 <div className="absolute bottom-4 -left-2 w-0 h-0 border-t-[6px] border-b-[6px] border-r-[8px] border-t-transparent border-b-transparent border-r-white/10" />
-                <div className="bg-white/5 border border-white/10 rounded-2xl px-4 py-3 space-y-1">
-                  <p className="text-[11px] font-black text-terracotta uppercase tracking-widest">{step.title}</p>
-                  <p className="text-xs text-light-gray/90 leading-relaxed font-medium">{step.message}</p>
+                <div className="bg-white/5 border border-white/10 rounded-2xl px-4 py-4 space-y-2 text-center">
+                  <p className="text-[10px] font-black text-terracotta uppercase tracking-widest mb-1">TUTORIAL</p>
+                  <p className="text-base font-black text-white">{step.title}</p>
+                  <p className="text-sm text-light-gray/90 leading-relaxed font-medium">{step.message}</p>
                 </div>
               </div>
             </div>
 
             {/* Progress bar */}
-            <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+            <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden mt-2">
               <div
                 className="h-full bg-terracotta rounded-full transition-all duration-500"
                 style={{ width: `${progress}%` }}
@@ -307,9 +308,9 @@ export default function TutorialOverlay({ onComplete }: TutorialOverlayProps) {
             {/* CTA button */}
             <button
               onClick={advance}
-              className="w-full py-3.5 bg-terracotta text-white font-black text-xs uppercase tracking-widest rounded-2xl hover:shadow-[0_0_20px_rgba(224,75,53,0.5)] transition-all active:scale-95"
+              className="w-full py-3.5 bg-terracotta text-white font-black text-xs uppercase tracking-widest rounded-2xl hover:shadow-[0_0_20px_rgba(224,75,53,0.5)] transition-all active:scale-95 mt-2"
             >
-              {isLast ? "Chalo shuru karte hain! 🚀" : step.tapTarget || "Got it! Aage badho →"}
+              {isLast ? "Chalo shuru karte hain!" : step.tapTarget || "Got it! Aage badho →"}
             </button>
 
             <p className="text-center text-[10px] text-muted-ash/50">

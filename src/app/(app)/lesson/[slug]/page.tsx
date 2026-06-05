@@ -306,7 +306,6 @@ export default function LessonPage({ params }: { params: any }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user, isPremium, isLoadingAuth } = useAuth();
-  const [nextWordSlug, setNextWordSlug] = useState<string | null>(null);
   const [allWords, setAllWords] = useState<any[]>([]);
   const [shuffledOptions, setShuffledOptions] = useState<any[]>([]);
 
@@ -392,12 +391,6 @@ export default function LessonPage({ params }: { params: any }) {
         const data = await res.json();
         const words = data.words || [];
         setAllWords(words);
-        const currentIndex = words.findIndex(
-          (w: any) => w.word.toLowerCase() === lessonData.word.toLowerCase()
-        );
-        if (currentIndex !== -1 && currentIndex < words.length - 1) {
-          setNextWordSlug(words[currentIndex + 1].word);
-        }
 
         const q = lessonData.quiz_questions[0];
         if (q && q.options) {
@@ -626,14 +619,73 @@ export default function LessonPage({ params }: { params: any }) {
 
   const CARD_LABELS = ["Word", "Meaning", "Story", "Mnemonic", "Usage", "Quiz", "Complete"];
 
-  // Daily word limit tracking
+  // ── Derived Queue Logic ──────────────────────────────────────────────────────
   const today = getTodayIST();
+  let nextWordSlug: string | null = null;
+  let isReviewWord = false;
+  let wordsLeftForReview = 0;
+
+  const srsReviewDueSlugs = new Set(
+    Object.values(stats.progressList)
+      .filter((p) => p.is_completed && p.next_review_at && toISTDateString(p.next_review_at) <= today)
+      .map((p) => p.word_slug.toLowerCase())
+  );
+
+  const reviewedTodaySlugs = new Set(
+    Object.values(stats.progressList)
+      .filter((p) => p.last_reviewed_at && toISTDateString(p.last_reviewed_at) === today)
+      .map((p) => p.word_slug.toLowerCase())
+  );
+
+  const currentWordSlugLower = lesson.word.toLowerCase();
+  isReviewWord = srsReviewDueSlugs.has(currentWordSlugLower);
+
+  const srsWords = allWords.filter(
+    (w) => srsReviewDueSlugs.has(w.word.toLowerCase()) && (!reviewedTodaySlugs.has(w.word.toLowerCase()) || w.word.toLowerCase() === currentWordSlugLower)
+  );
+
+  const newWords = allWords.filter((w) => {
+    const p = stats.progressList.find(x => x.word_slug.toLowerCase() === w.word.toLowerCase());
+    const isCompleted = p?.is_completed;
+    const wasCompletedToday = p?.first_completed_at && toISTDateString(p.first_completed_at) === today;
+    return (!isCompleted || wasCompletedToday) && (!reviewedTodaySlugs.has(w.word.toLowerCase()) || w.word.toLowerCase() === currentWordSlugLower);
+  });
+
+  if (user?.id && newWords.length > 0) {
+    const d = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+    const seedString = `${user.id}-${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+    let h = 0;
+    for (let i = 0; i < seedString.length; i++) h = (Math.imul(31, h) + seedString.charCodeAt(i)) | 0;
+    const seed = Math.abs(h);
+    const rng = (s: number) => { let x = Math.sin(s) * 10000; return x - Math.floor(x); };
+    newWords.sort((a, b) => rng(a.word.charCodeAt(0) + seed) - rng(b.word.charCodeAt(0) + seed));
+  }
+
+  const remainingSrs = srsWords.filter(w => w.word.toLowerCase() !== currentWordSlugLower);
+  const remainingNew = newWords.filter(w => w.word.toLowerCase() !== currentWordSlugLower);
+  wordsLeftForReview = remainingSrs.length;
+
   const newWordsCompletedToday = isLoaded
     ? Object.values(stats.progressList).filter(
         (p) => p.first_completed_at && toISTDateString(p.first_completed_at) === today
       ).length
     : 0;
+  
   const dailyLimitReached = newWordsCompletedToday >= 5;
+  const hasNewQuota = newWordsCompletedToday < 5;
+
+  const nextSrs = remainingSrs.length > 0 ? remainingSrs[0].word : null;
+  const nextNew = remainingNew.length > 0 && hasNewQuota ? remainingNew[0].word : null;
+
+  // Review logic: empty review words first, then new words. 
+  // If we are currently reviewing, or if there are review words pending, prioritize them? 
+  // If user started from a new word, they should finish new words first. Let's check where they started.
+  // The simplest is: if current is review, next is review else new. If current is new, next is new else review.
+  if (isReviewWord) {
+    nextWordSlug = nextSrs || nextNew;
+  } else {
+    nextWordSlug = nextNew || nextSrs;
+  }
 
   // ── Slide Transform ──────────────────────────────────────────────────────────
   const getSlideStyle = (): React.CSSProperties => {
@@ -674,11 +726,16 @@ export default function LessonPage({ params }: { params: any }) {
         </div>
       ) : (
         <>
-          <div className="text-center space-y-3">
-            <span className="inline-block text-xs font-bold uppercase tracking-widest px-4 py-1.5 bg-dark-blush text-terracotta rounded-full border border-terracotta/20">
+          <div className="text-center space-y-3 px-2 w-full">
+            <span className="inline-block text-[10px] font-black uppercase tracking-widest px-3 py-1 bg-dark-blush text-terracotta rounded-full border border-terracotta/20">
               {lesson.type}
             </span>
-            <h1 className="text-5xl md:text-7xl font-black tracking-tight text-light-gray">
+            {isReviewWord && (
+              <span className="inline-block ml-2 text-[10px] font-black uppercase tracking-widest px-3 py-1 bg-amber-500/10 text-amber-400 rounded-full border border-amber-500/20">
+                Review Word
+              </span>
+            )}
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tight text-light-gray break-words hyphens-auto w-full text-center max-w-full">
               {toTitleCase(lesson.word)}
             </h1>
             <p className="text-xl md:text-2xl text-muted-ash italic font-sans">{lesson.phonetic}</p>
@@ -1150,6 +1207,16 @@ export default function LessonPage({ params }: { params: any }) {
           )}
         </div>
 
+        {/* Review words info */}
+        {wordsLeftForReview > 0 && (
+          <div className="bg-amber-950/20 border border-amber-500/20 rounded-2xl px-4 py-3">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-black uppercase tracking-widest text-amber-400/80">Pending Reviews</span>
+              <span className="text-xs font-black text-amber-400">{wordsLeftForReview} Left</span>
+            </div>
+          </div>
+        )}
+
         {/* Stats row */}
         <div className="flex items-center justify-center gap-3 flex-wrap">
           {xpEarned > 0 && (
@@ -1178,7 +1245,7 @@ export default function LessonPage({ params }: { params: any }) {
           >
             Back to Dashboard
           </Link>
-          {nextWordSlug && !dailyLimitReached && (
+          {nextWordSlug && (
             <Link
               href={`/lesson/${nextWordSlug}`}
               className="flex-1 py-4 bg-terracotta rounded-2xl font-bold text-sm uppercase tracking-widest text-white hover:shadow-[0_0_20px_rgba(224,75,53,0.4)] transition-all text-center"
@@ -1186,9 +1253,9 @@ export default function LessonPage({ params }: { params: any }) {
               Next word
             </Link>
           )}
-          {dailyLimitReached && (
+          {!nextWordSlug && dailyLimitReached && wordsLeftForReview === 0 && (
             <div className="flex-1 py-4 bg-white/5 border border-white/8 rounded-2xl text-sm font-bold uppercase tracking-widest text-muted-ash text-center cursor-not-allowed">
-              5 words done for today
+              All caught up for today!
             </div>
           )}
         </div>
